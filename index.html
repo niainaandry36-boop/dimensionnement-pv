@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dimensionnement PV</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"></head><body>
+<style>
+:root {
+  --fond: #f3f5f3;
+  --surface: #ffffff;
+  --surface-douce: #e8eeeb;
+  --encre: #16282c;
+  --encre-douce: #566a6d;
+  --trait: #d3dcd8;
+  --accent: #0d6b66;
+  --accent-encre: #ffffff;
+  --solaire-fond: #fdf0c8;
+  --solaire-encre: #5a3d00;
+  --alerte-fond: #fff0dc;
+  --alerte-trait: #c9731a;
+  --info-fond: #e1f1ef;
+  --police: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --chiffres: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fond: #0f1b1d;
+    --surface: #162427;
+    --surface-douce: #1d3033;
+    --encre: #e5eeec;
+    --encre-douce: #98adaf;
+    --trait: #2b4144;
+    --accent: #4cc2b6;
+    --accent-encre: #06201e;
+    --solaire-fond: #3a2e0c;
+    --solaire-encre: #f6d57a;
+    --alerte-fond: #33240f;
+    --alerte-trait: #d98a3a;
+    --info-fond: #14302d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fond: #0f1b1d;
+  --surface: #162427;
+  --surface-douce: #1d3033;
+  --encre: #e5eeec;
+  --encre-douce: #98adaf;
+  --trait: #2b4144;
+  --accent: #4cc2b6;
+  --accent-encre: #06201e;
+  --solaire-fond: #3a2e0c;
+  --solaire-encre: #f6d57a;
+  --alerte-fond: #33240f;
+  --alerte-trait: #d98a3a;
+  --info-fond: #14302d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--encre);
+  font-family: var(--police);
+  font-size: 16px;
+  line-height: 1.45;
+  padding-block: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--fond);
+}
+.application { max-width: 560px; margin: 0 auto; }
+.entete {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--fond);
+  padding: 14px 0 0;
+}
+.entete h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.entete .sous-titre { margin: 2px 0 10px; font-size: 13px; color: var(--encre-douce); }
+.etapes { display: flex; gap: 6px; }
+.etapes button {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 2px 8px;
+  border: 0;
+  border-bottom: 3px solid var(--trait);
+  background: transparent;
+  color: var(--encre-douce);
+  font: 500 13px var(--police);
+  text-align: left;
+  cursor: pointer;
+}
+.etapes button .numero { display: block; font: 600 11px var(--chiffres); letter-spacing: 0.06em; }
+.etapes button[aria-current="step"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.etapes button.faite { border-bottom-color: var(--accent); opacity: 0.75; }
+main { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+h2 { margin: 0 0 12px; font-size: 17px; font-weight: 600; text-wrap: balance; }
+h3 { margin: 16px 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--encre-douce); }
+.carte {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 12px;
+}
+.note { margin: 12px 0 0; font-size: 14px; color: var(--encre-douce); }
+.champ { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; min-width: 0; }
+.champ:first-of-type { margin-top: 0; }
+.champ label, .etiquette { font-size: 14px; font-weight: 500; }
+.unite { font-weight: 400; color: var(--encre-douce); font-size: 13px; }
+input, select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--encre);
+  font: 500 16px var(--chiffres);
+}
+select { font-family: var(--police); }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.grille .champ label { display: flex; flex-direction: column; justify-content: flex-end; }
+.grille .champ { margin-top: 0; }
+.grille3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.grille3 .champ { margin-top: 0; }
+.puces { display: flex; flex-wrap: wrap; gap: 8px; }
+.puce {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--trait);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--encre);
+  font: 500 14px var(--police);
+  cursor: pointer;
+}
+.puce-vide { border-style: dashed; color: var(--accent); }
+.segments { display: flex; gap: 4px; padding: 4px; background: var(--surface-douce); border-radius: 12px; }
+.segments button {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--encre);
+  font: 500 14px var(--police);
+  cursor: pointer;
+}
+.segments button[aria-pressed="true"] { background: var(--surface); color: var(--accent); font-weight: 600; box-shadow: 0 0 0 1.5px var(--accent) inset; }
+.pas { display: flex; align-items: center; gap: 12px; }
+.pas button {
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--encre);
+  font: 500 22px var(--police);
+  cursor: pointer;
+}
+.pas output { flex: 1; text-align: center; font: 600 18px var(--chiffres); }
+.totaux { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--trait); }
+.totaux .valeur { display: block; font: 600 22px var(--chiffres); }
+.totaux .legende { font-size: 13px; color: var(--encre-douce); }
+.appareil { padding: 14px 0; border-bottom: 1px solid var(--trait); }
+.appareil:last-child { border-bottom: 0; padding-bottom: 0; }
+.appareil-tete { display: flex; gap: 8px; align-items: center; }
+.appareil-tete input { font-family: var(--police); font-weight: 600; }
+.supprimer {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--encre-douce);
+  font: 500 20px var(--police);
+  cursor: pointer;
+}
+.appareil-champs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.appareil-champs label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--encre-douce); }
+.appareil-champs input { padding: 8px; text-align: center; }
+.appareil-pied { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.appareil-pied .segments { width: 132px; }
+.appareil-pied .segments button { min-height: 34px; }
+.energie-ligne { font: 500 14px var(--chiffres); color: var(--encre-douce); }
+.tuiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.tuile { padding: 14px; border-radius: 12px; background: var(--surface-douce); min-width: 0; }
+.tuile.principale { background: var(--solaire-fond); color: var(--solaire-encre); }
+.tuile .legende { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.8; }
+.tuile .valeur { display: block; margin: 4px 0 2px; font: 600 24px/1.15 var(--chiffres); overflow-wrap: anywhere; }
+.tuile .detail { font-size: 13px; opacity: 0.85; }
+.valeurs { margin: 0; }
+.valeurs > div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--trait); }
+.valeurs > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.valeurs dt { color: var(--encre-douce); font-size: 14px; }
+.valeurs dd { margin: 0; text-align: right; font: 500 14px var(--chiffres); overflow-wrap: anywhere; }
+.defile { overflow-x: auto; }
+.tableau { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tableau th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--encre-douce); padding: 0 8px 8px 0; white-space: nowrap; }
+.tableau td { padding: 9px 8px 9px 0; border-top: 1px solid var(--trait); font-family: var(--chiffres); font-size: 13px; }
+.tableau td:first-child { font-family: var(--police); font-size: 14px; }
+.message { margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 14px; border: 1px solid var(--alerte-trait); background: var(--alerte-fond); }
+.message.info { border-color: var(--accent); background: var(--info-fond); }
+details.carte summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+details.carte[open] summary { margin-bottom: 14px; }
+.formules p { margin: 0 0 10px; font-size: 14px; }
+.formules code { display: block; margin-top: 2px; padding: 8px 10px; border-radius: 8px; background: var(--surface-douce); font: 500 13px var(--chiffres); overflow-wrap: anywhere; }
+.actions { display: grid; gap: 10px; margin-top: 16px; }
+textarea {
+  width: 100%;
+  min-height: 160px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--encre);
+  font: 500 13px var(--chiffres);
+}
+.barre {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  background: var(--fond);
+  border-top: 1px solid var(--trait);
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.barre-interieure { display: flex; gap: 12px; max-width: 560px; margin: 0 auto; }
+.bouton {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-encre);
+  font: 600 16px var(--police);
+  cursor: pointer;
+}
+.bouton.secondaire { background: transparent; color: var(--accent); }
+.notification {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  z-index: 8;
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--encre);
+  color: var(--fond);
+  font-size: 14px;
+  transform: translateX(-50%);
+}
+[hidden] { display: none !important; }
+.compte { display: flex; align-items: center; gap: 2px; margin: 0 0 8px; min-width: 0; }
+.compte-email { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--encre-douce); }
+.lien { flex: none; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--accent); font: 600 14px var(--police); cursor: pointer; }
+.connexion .segments { margin-bottom: 16px; }
+.connexion form { display: flex; flex-direction: column; }
+.connexion .bouton { width: 100%; margin-top: 16px; }
+.connexion .bouton:disabled { opacity: 0.6; cursor: wait; }
+.connexion .lien { align-self: center; margin-top: 8px; }
+.etude { padding: 14px 0; border-bottom: 1px solid var(--trait); }
+.etude:first-of-type { padding-top: 0; }
+.etude:last-child { border-bottom: 0; padding-bottom: 0; }
+.etude-nom { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.etude-date { margin: 2px 0 0; font-size: 13px; color: var(--encre-douce); }
+.etude-resume { margin: 8px 0 0; font: 500 13px var(--chiffres); overflow-wrap: anywhere; }
+.etude-actions { display: flex; gap: 8px; margin-top: 10px; }
+.etude-actions .bouton { min-height: 40px; font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .carte, .tuile { animation: apparition 0.2s ease-out; }
+  @keyframes apparition { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<div class="application">
+  <header class="entete">
+    <h1>Dimensionnement PV</h1>
+    <p class="sous-titre">Site isolé · batteries · 220 V / 50 Hz</p>
+    <div class="compte" id="compte" hidden></div>
+    <nav class="etapes" id="etapes" aria-label="Étapes"></nav>
+  </header>
+  <main id="vue"></main>
+</div>
+<footer class="barre">
+  <div class="barre-interieure">
+    <button type="button" class="bouton secondaire" id="precedent">Précédent</button>
+    <button type="button" class="bouton" id="suivant">Suivant</button>
+  </div>
+</footer>
+<div class="notification" id="notification" role="status" aria-live="polite" hidden></div>
+
+<script>
+window.configurationFirebase = {
+  apiKey: 'AIzaSyAF5ztPG7cx4I_eENsRZ8pD8-CyyJ6-A-8',
+  authDomain: 'dimensionnement-pv.firebaseapp.com',
+  projectId: 'dimensionnement-pv',
+  storageBucket: 'dimensionnement-pv.firebasestorage.app',
+  messagingSenderId: '407525407598',
+  appId: '1:407525407598:web:9c89c607786fc2b0ee5f7f'
+};
+</script>
+<script>
+const cleStockage = 'dimensionnement-pv-v1';
+const nomsEtapes = ['Site', 'Charges', 'Système', 'Résultats'];
+
+const villes = [
+  { nom: 'Antananarivo', latitude: -18.9, irradiation: 4.5, temperatureMin: 5 },
+  { nom: 'Antsirabe', latitude: -19.9, irradiation: 4.5, temperatureMin: 2 },
+  { nom: 'Fianarantsoa', latitude: -21.5, irradiation: 4.5, temperatureMin: 6 },
+  { nom: 'Toamasina', latitude: -18.1, irradiation: 3.8, temperatureMin: 14 },
+  { nom: 'Mahajanga', latitude: -15.7, irradiation: 5.2, temperatureMin: 15 },
+  { nom: 'Toliara', latitude: -23.4, irradiation: 5.0, temperatureMin: 11 },
+  { nom: 'Antsiranana', latitude: -12.3, irradiation: 5.0, temperatureMin: 16 },
+  { nom: 'Morondava', latitude: -20.3, irradiation: 5.0, temperatureMin: 13 }
+];
+
+const appareilsTypes = [
+  { nom: 'Lampe LED', puissance: 9, quantite: 1, heures: 5, demarrage: 1, courant: 'CA' },
+  { nom: 'Télévision LED', puissance: 80, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
+  { nom: 'Décodeur', puissance: 20, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
+  { nom: 'Réfrigérateur', puissance: 150, quantite: 1, heures: 8, demarrage: 4, courant: 'CA' },
+  { nom: 'Congélateur', puissance: 200, quantite: 1, heures: 8, demarrage: 4, courant: 'CA' },
+  { nom: 'Ventilateur', puissance: 50, quantite: 1, heures: 6, demarrage: 2, courant: 'CA' },
+  { nom: 'Ordinateur portable', puissance: 65, quantite: 1, heures: 5, demarrage: 1, courant: 'CA' },
+  { nom: 'Chargeur de téléphone', puissance: 10, quantite: 1, heures: 3, demarrage: 1, courant: 'CA' },
+  { nom: 'Box Wi-Fi', puissance: 15, quantite: 1, heures: 24, demarrage: 1, courant: 'CA' },
+  { nom: 'Pompe à eau', puissance: 370, quantite: 1, heures: 1, demarrage: 4, courant: 'CA' },
+  { nom: 'Machine à laver', puissance: 500, quantite: 1, heures: 1, demarrage: 3, courant: 'CA' },
+  { nom: 'Fer à repasser', puissance: 1000, quantite: 1, heures: 0.5, demarrage: 1, courant: 'CA' }
+];
+
+const modulesPV = [
+  { id: '100', nom: '100 Wc · 36 cellules', pc: 100, voc: 22.4, vmp: 18.2, isc: 5.9, imp: 5.5, tensionNominale: 12 },
+  { id: '250', nom: '250 Wc · 60 cellules', pc: 250, voc: 37.6, vmp: 30.8, isc: 8.9, imp: 8.12, tensionNominale: 24 },
+  { id: '330', nom: '330 Wc · 72 cellules', pc: 330, voc: 46.0, vmp: 37.6, isc: 9.2, imp: 8.78, tensionNominale: 24 },
+  { id: '450', nom: '450 Wc · monocristallin', pc: 450, voc: 49.8, vmp: 41.6, isc: 11.5, imp: 10.82, tensionNominale: 24 },
+  { id: '550', nom: '550 Wc · monocristallin', pc: 550, voc: 49.9, vmp: 41.7, isc: 13.9, imp: 13.19, tensionNominale: 24 }
+];
+
+const technologies = {
+  plomb: { nom: 'Plomb AGM / Gel', profondeurDecharge: 0.5, rendement: 0.85, capacites: [50, 100, 150, 200, 250], seuilDecharge: 5 },
+  lithium: { nom: 'Lithium LiFePO4', profondeurDecharge: 0.8, rendement: 0.95, capacites: [50, 100, 200, 300], seuilDecharge: 1 }
+};
+
+const taillesOnduleur = [300, 500, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000];
+const taillesRegulateur = [10, 15, 20, 30, 40, 50, 60, 80, 100];
+const sectionsCable = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120];
+const calibresProtection = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400];
+const tensionsRegulateur = [100, 150, 250, 450];
+
+const etatParDefaut = () => ({
+  etape: 0,
+  ville: 'Antananarivo',
+  irradiation: 4.5,
+  temperatureMin: 5,
+  latitude: -18.9,
+  appareils: [
+    { nom: 'Lampe LED', puissance: 9, quantite: 6, heures: 5, demarrage: 1, courant: 'CA' },
+    { nom: 'Télévision LED', puissance: 80, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
+    { nom: 'Réfrigérateur', puissance: 150, quantite: 1, heures: 8, demarrage: 4, courant: 'CA' },
+    { nom: 'Ventilateur', puissance: 50, quantite: 1, heures: 6, demarrage: 2, courant: 'CA' },
+    { nom: 'Chargeur de téléphone', puissance: 10, quantite: 2, heures: 3, demarrage: 1, courant: 'CA' }
+  ],
+  simultaneite: 0.8,
+  technologie: 'plomb',
+  profondeurDecharge: 0.5,
+  rendementBatterie: 0.85,
+  rendementOnduleur: 0.9,
+  coefficientPertes: 0.8,
+  autonomie: 2,
+  tension: 'auto',
+  uniteTension: 12,
+  uniteCapacite: 200,
+  moduleId: '330',
+  moduleSurMesure: { pc: 300, voc: 45, vmp: 36, isc: 9, imp: 8.4, tensionNominale: 24 },
+  regulateur: 'mppt',
+  vmaxRegulateur: 'auto',
+  distanceChamp: 15,
+  distanceBatterie: 2,
+  distanceOnduleur: 1.5
+});
+
+function chargerEtat() {
+  const base = etatParDefaut();
+  try {
+    const brut = window.localStorage.getItem(cleStockage);
+    if (!brut) return base;
+    const sauvegarde = JSON.parse(brut);
+    return {
+      ...base,
+      ...sauvegarde,
+      moduleSurMesure: { ...base.moduleSurMesure, ...(sauvegarde.moduleSurMesure || {}) },
+      appareils: Array.isArray(sauvegarde.appareils) ? sauvegarde.appareils : base.appareils,
+      etape: 0
+    };
+  } catch (erreur) {
+    return base;
+  }
+}
+
+function sauvegarder() {
+  try {
+    window.localStorage.setItem(cleStockage, JSON.stringify(etat));
+  } catch (erreur) {}
+}
+
+let etat = chargerEtat();
+let confirmationEffacement = false;
+let minuteurNotification = null;
+let minuteurConfirmation = null;
+const nuageConfigure = Boolean(window.configurationFirebase && window.configurationFirebase.apiKey && window.configurationFirebase.projectId);
+const compte = { mode: nuageConfigure ? 'attente' : 'local', utilisateur: null, raison: '' };
+let vueActuelle = 'etapes';
+let modeAuth = 'connexion';
+let emailSaisi = '';
+let messageAuth = { texte: '', info: false };
+let etudes = null;
+let erreurHistorique = '';
+let etudeASupprimer = null;
+let enregistrementEnCours = false;
+
+const formater = (valeur, decimales = 0) =>
+  new Intl.NumberFormat('fr-FR', { maximumFractionDigits: decimales, minimumFractionDigits: 0 }).format(valeur);
+
+const echapper = texte =>
+  String(texte).replace(/[&<>"']/g, caractere => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[caractere]));
+
+function premierSuperieur(liste, valeur) {
+  const trouve = liste.find(element => element >= valeur - 1e-9);
+  return trouve === undefined ? null : trouve;
+}
+
+function somme(liste, extraire) {
+  return liste.reduce((total, element) => total + extraire(element), 0);
+}
+
+function dimensionnerCable(courant, longueur, tensionReference, chute, minimum) {
+  const calculee = (2 * 0.023 * longueur * courant) / (chute * tensionReference);
+  const section = premierSuperieur(sectionsCable, Math.max(calculee, minimum));
+  return { courant, longueur, calculee, section };
+}
+
+function sectionAlternatif(calibre) {
+  if (calibre <= 16) return 2.5;
+  if (calibre <= 25) return 4;
+  if (calibre <= 32) return 6;
+  if (calibre <= 50) return 10;
+  return 16;
+}
+
+function calculerDimensionnement(e) {
+  const lignes = e.appareils.filter(a => a.puissance > 0 && a.quantite > 0 && a.heures > 0);
+  if (!lignes.length) return { erreur: 'Ajoute au moins un appareil à l’étape Charges.' };
+  if (!(e.irradiation > 0)) return { erreur: 'Renseigne une irradiation supérieure à 0 à l’étape Site.' };
+
+  const alertes = [];
+  const lignesCA = lignes.filter(a => a.courant === 'CA');
+  const lignesCC = lignes.filter(a => a.courant === 'CC');
+  const energieCA = somme(lignesCA, a => a.puissance * a.quantite * a.heures);
+  const energieCC = somme(lignesCC, a => a.puissance * a.quantite * a.heures);
+  const energieBesoin = energieCC + energieCA / e.rendementOnduleur;
+  const puissanceCA = somme(lignesCA, a => a.puissance * a.quantite);
+  const puissanceCC = somme(lignesCC, a => a.puissance * a.quantite);
+  const puissanceSimultanee = puissanceCA * e.simultaneite;
+  const surcharge = lignesCA.reduce((maximum, a) => Math.max(maximum, a.puissance * a.quantite * (Math.max(a.demarrage, 1) - 1)), 0);
+  const pointe = puissanceSimultanee + surcharge;
+
+  let onduleur = null;
+  if (puissanceCA > 0) {
+    const puissanceMin = Math.max(1.25 * puissanceSimultanee, pointe / 2);
+    const apparenteMin = puissanceMin / 0.8;
+    let apparente = premierSuperieur(taillesOnduleur, apparenteMin);
+    if (apparente === null) {
+      apparente = Math.ceil(apparenteMin / 1000) * 1000;
+      alertes.push({ niveau: 'attention', texte: 'Puissance supérieure à 10 kVA : prévoir plusieurs onduleurs en parallèle ou un onduleur triphasé.' });
+    }
+    onduleur = { apparente, active: apparente * 0.8, apparenteMin, pointe, simultanee: puissanceSimultanee };
+  }
+
+  const rendementRegulateur = e.regulateur === 'mppt' ? 0.97 : 0.85;
+  const coefficientGlobal = e.rendementBatterie * rendementRegulateur * e.coefficientPertes;
+  const puissanceCreteMin = energieBesoin / (e.irradiation * coefficientGlobal);
+  const apparenteOnduleur = onduleur ? onduleur.apparente : 0;
+  let tensionAuto = 48;
+  if (puissanceCreteMin <= 500 && apparenteOnduleur <= 1000) tensionAuto = 12;
+  else if (puissanceCreteMin <= 2000 && apparenteOnduleur <= 3000) tensionAuto = 24;
+  const tension = e.tension === 'auto' ? tensionAuto : Number(e.tension);
+  if (tension < tensionAuto) {
+    alertes.push({ niveau: 'attention', texte: `Une tension de ${tension} V donne des courants élevés pour cette puissance. ${tensionAuto} V est recommandé.` });
+  }
+
+  const capaciteUtileWh = energieBesoin * e.autonomie;
+  const capaciteNominaleWh = capaciteUtileWh / (e.profondeurDecharge * e.rendementBatterie);
+  const capaciteRequiseAh = capaciteNominaleWh / tension;
+  const batterieCompatible = e.uniteTension <= tension;
+  if (!batterieCompatible) {
+    alertes.push({ niveau: 'attention', texte: `Les batteries de ${e.uniteTension} V ne conviennent pas à un système de ${tension} V. Choisis une tension d’élément inférieure ou égale.` });
+  }
+  const serieBatterie = batterieCompatible ? tension / e.uniteTension : 1;
+  const paralleleBatterie = Math.max(1, Math.ceil(capaciteRequiseAh / e.uniteCapacite - 1e-9));
+  const nombreBatteries = serieBatterie * paralleleBatterie;
+  const capaciteInstalleeAh = paralleleBatterie * e.uniteCapacite;
+  const energieInstalleeKWh = (capaciteInstalleeAh * tension) / 1000;
+  const courantDecharge = (puissanceSimultanee / e.rendementOnduleur + puissanceCC) / tension;
+  const seuilDecharge = technologies[e.technologie].seuilDecharge;
+  if (paralleleBatterie > 4) {
+    alertes.push({ niveau: 'attention', texte: `${paralleleBatterie} branches de batteries en parallèle : le courant se répartit mal au-delà de 4 branches. Prends des éléments de plus grande capacité ou une tension de système plus élevée.` });
+  }
+  if (courantDecharge > capaciteInstalleeAh / seuilDecharge) {
+    alertes.push({ niveau: 'attention', texte: `Courant de décharge de ${formater(courantDecharge, 0)} A, supérieur à C/${seuilDecharge} de la batterie : la capacité réellement disponible sera réduite.` });
+  }
+
+  const module = e.moduleId === 'perso' ? e.moduleSurMesure : modulesPV.find(m => m.id === e.moduleId);
+  const nombreTheorique = Math.max(1, Math.ceil(puissanceCreteMin / module.pc - 1e-9));
+  const vocFroid = module.voc * (1 + 0.0028 * Math.max(0, 25 - e.temperatureMin));
+  const vmpChaud = module.vmp * (1 - 0.0035 * 45);
+  const tensionCharge = 1.2 * tension;
+
+  let serieChamp = 1;
+  let paralleleChamp = nombreTheorique;
+  let configurationValide = false;
+  let vmaxChoisie = null;
+
+  if (e.regulateur === 'mppt') {
+    const serieMin = Math.max(1, Math.ceil((tensionCharge + 5) / vmpChaud));
+    const candidates = e.vmaxRegulateur === 'auto' ? tensionsRegulateur : [Number(e.vmaxRegulateur)];
+    let meilleure = null;
+    for (const vmax of candidates) {
+      const serieMax = Math.floor((0.95 * vmax) / vocFroid);
+      for (let s = serieMin; s <= serieMax; s++) {
+        const p = Math.ceil(nombreTheorique / s);
+        const total = s * p;
+        if (!meilleure || total < meilleure.total || (total === meilleure.total && vmax === meilleure.vmax && s > meilleure.serie)) {
+          meilleure = { serie: s, parallele: p, total, vmax };
+        }
+      }
+    }
+    if (meilleure) {
+      serieChamp = meilleure.serie;
+      paralleleChamp = meilleure.parallele;
+      vmaxChoisie = meilleure.vmax;
+      configurationValide = true;
+    } else {
+      vmaxChoisie = candidates[candidates.length - 1];
+      alertes.push({ niveau: 'attention', texte: `Aucune association série/parallèle valide : à froid, un module atteint ${formater(vocFroid, 1)} V et il en faut au moins ${serieMin} en série. Choisis un module de tension plus faible ou un régulateur de tension maximale plus élevée.` });
+    }
+  } else {
+    const serie = tension / module.tensionNominale;
+    if (Number.isInteger(serie) && serie >= 1) {
+      serieChamp = serie;
+      paralleleChamp = Math.ceil(nombreTheorique / serie);
+      configurationValide = true;
+    } else {
+      alertes.push({ niveau: 'attention', texte: `Un régulateur PWM impose des modules de ${tension} V nominal. Ce module (${module.tensionNominale} V) ne convient pas à un système de ${tension} V : choisis un régulateur MPPT ou un autre module.` });
+    }
+  }
+
+  const nombreModules = serieChamp * paralleleChamp;
+  const puissanceInstallee = nombreModules * module.pc;
+  const courantCourtCircuit = paralleleChamp * module.isc;
+  const tensionCircuitOuvert = serieChamp * vocFroid;
+  const tensionPuissanceMax = serieChamp * vmpChaud;
+
+  const courantRegulateur = e.regulateur === 'mppt' ? (1.25 * puissanceInstallee) / tension : 1.25 * courantCourtCircuit;
+  let calibreRegulateur = premierSuperieur(taillesRegulateur, courantRegulateur);
+  let nombreRegulateurs = 1;
+  if (calibreRegulateur === null) {
+    calibreRegulateur = 100;
+    nombreRegulateurs = Math.ceil(courantRegulateur / 100);
+    alertes.push({ niveau: 'attention', texte: `Courant de charge de ${formater(courantRegulateur, 0)} A : prévoir ${nombreRegulateurs} régulateurs de 100 A en parallèle, chacun sur ses propres strings.` });
+  }
+  if (e.regulateur === 'pwm' && courantRegulateur > 60) {
+    alertes.push({ niveau: 'info', texte: 'Au-delà de 60 A, un régulateur MPPT est préférable à un PWM.' });
+  }
+
+  const production = puissanceInstallee * e.irradiation * coefficientGlobal;
+  const couverture = production / energieBesoin;
+
+  const courantChamp = 1.25 * courantCourtCircuit;
+  const cableChamp = dimensionnerCable(courantChamp, e.distanceChamp, serieChamp * module.vmp, 0.03, 4);
+  const cableBatterie = dimensionnerCable(courantRegulateur, e.distanceBatterie, tension, 0.02, 1.5);
+  let cableOnduleur = null;
+  let courantOnduleur = 0;
+  let courantAlternatif = 0;
+  let calibreAlternatif = null;
+  let sectionAlternative = null;
+  if (onduleur) {
+    courantOnduleur = onduleur.active / (e.rendementOnduleur * tension);
+    cableOnduleur = dimensionnerCable(courantOnduleur, e.distanceOnduleur, tension, 0.02, 1.5);
+    courantAlternatif = onduleur.apparente / 220;
+    calibreAlternatif = premierSuperieur(calibresProtection, 1.25 * courantAlternatif);
+    sectionAlternative = calibreAlternatif === null ? null : sectionAlternatif(calibreAlternatif);
+  }
+  [['Champ → régulateur', cableChamp], ['Régulateur → batterie', cableBatterie], ['Batterie → onduleur', cableOnduleur]].forEach(([nom, cable]) => {
+    if (cable && cable.section === null) {
+      alertes.push({ niveau: 'attention', texte: `${nom} : section supérieure à 120 mm². Réduis la distance, monte la tension du système ou passe en câbles parallèles.` });
+    }
+  });
+
+  const courantProtectionRegulateur = nombreRegulateurs > 1 ? calibreRegulateur : courantRegulateur;
+  const protections = {
+    fusibleBatterie: onduleur ? premierSuperieur(calibresProtection, 1.25 * courantOnduleur) : null,
+    disjoncteurBatterie: premierSuperieur(calibresProtection, courantProtectionRegulateur),
+    fusibleString: paralleleChamp >= 3 ? premierSuperieur(calibresProtection, 1.5 * module.isc) : null,
+    disjoncteurChamp: premierSuperieur(calibresProtection, courantChamp),
+    tensionChamp: Math.ceil(tensionCircuitOuvert / 10) * 10,
+    disjoncteurAlternatif: calibreAlternatif
+  };
+
+  if (couverture < 1) {
+    alertes.push({ niveau: 'attention', texte: `Le champ ne couvre que ${formater(couverture * 100, 0)} % des besoins au mois le plus défavorable.` });
+  }
+
+  const inclinaison = Math.min(45, Math.max(10, Math.round(Math.abs(e.latitude)) + 10));
+  const orientation = e.latitude < 0 ? 'plein Nord' : 'plein Sud';
+
+  return {
+    alertes,
+    besoins: { energieCA, energieCC, energieBesoin, puissanceCA, puissanceCC, puissanceSimultanee, pointe },
+    onduleur,
+    tension,
+    tensionAuto,
+    coefficientGlobal,
+    puissanceCreteMin,
+    batterie: { capaciteUtileWh, capaciteNominaleWh, capaciteRequiseAh, serie: serieBatterie, parallele: paralleleBatterie, nombre: nombreBatteries, capaciteInstalleeAh, energieInstalleeKWh, courantDecharge },
+    champ: { module, nombreTheorique, serie: serieChamp, parallele: paralleleChamp, nombreModules, puissanceInstallee, valide: configurationValide, vocFroid, vmpChaud, tensionCircuitOuvert, tensionPuissanceMax, courantCourtCircuit, vmax: vmaxChoisie, inclinaison, orientation },
+    regulateur: { type: e.regulateur, courant: courantRegulateur, calibre: calibreRegulateur, nombre: nombreRegulateurs },
+    production,
+    couverture,
+    cables: { champ: cableChamp, batterie: cableBatterie, onduleur: cableOnduleur, alternatif: onduleur ? { courant: courantAlternatif, section: sectionAlternative } : null },
+    protections
+  };
+}
+
+const entree = (id, cle, options = {}) => {
+  const echelle = options.echelle === undefined ? 1 : options.echelle;
+  const valeur = Number((etat[cle] * echelle).toFixed(3));
+  const pas = options.pas === undefined ? 'any' : options.pas;
+  return `<input id="${id}" type="number" inputmode="decimal" step="${pas}" min="0" value="${valeur}" data-cle="${cle}" data-echelle="${echelle}">`;
+};
+
+const segments = (cle, options) =>
+  `<div class="segments" role="group">${options
+    .map(([valeur, libelle]) => `<button type="button" data-action="choisir" data-cle="${cle}" data-valeur="${valeur}" aria-pressed="${String(etat[cle]) === String(valeur)}">${libelle}</button>`)
+    .join('')}</div>`;
+
+function vueSite() {
+  const options =
+    villes.map(v => `<option value="${v.nom}"${etat.ville === v.nom ? ' selected' : ''}>${v.nom}</option>`).join('') +
+    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>`;
+  return `<section class="carte">
+    <h2>Lieu d’installation</h2>
+    <div class="champ"><label for="ville">Ville</label><select id="ville" data-selection="ville">${options}</select></div>
+    <div class="champ"><label for="irradiation">Irradiation du mois le plus défavorable <span class="unite">kWh/m²/jour</span></label>${entree('irradiation', 'irradiation', { pas: 0.1 })}</div>
+    <div class="grille" style="margin-top:14px">
+      <div class="champ"><label for="temperatureMin">Température minimale <span class="unite">°C</span></label>${entree('temperatureMin', 'temperatureMin', { pas: 1 })}</div>
+      <div class="champ"><label for="latitude">Latitude <span class="unite">° (– au sud)</span></label><input id="latitude" type="number" inputmode="decimal" step="0.1" value="${etat.latitude}" data-cle="latitude" data-echelle="1"></div>
+    </div>
+    <p class="note">On dimensionne sur le mois le plus défavorable : l’installation couvre alors les besoins toute l’année.</p>
+  </section>
+  <p class="message info">Valeurs indicatives et prudentes pour les villes de Madagascar. Pour ton site exact, relève l’irradiation sur PVGIS ou NASA POWER et corrige le champ ci-dessus.</p>`;
+}
+
+const ligneAppareil = (a, i) => `<div class="appareil">
+  <div class="appareil-tete">
+    <input type="text" value="${echapper(a.nom)}" data-ligne="${i}" data-propriete="nom" aria-label="Nom de l’appareil" placeholder="Nom de l’appareil">
+    <button type="button" class="supprimer" data-action="supprimer" data-ligne="${i}" aria-label="Supprimer ${echapper(a.nom)}">×</button>
+  </div>
+  <div class="appareil-champs">
+    <div><label for="p${i}">Watts</label><input id="p${i}" type="number" inputmode="decimal" min="0" step="any" value="${a.puissance}" data-ligne="${i}" data-propriete="puissance"></div>
+    <div><label for="q${i}">Quantité</label><input id="q${i}" type="number" inputmode="numeric" min="0" step="1" value="${a.quantite}" data-ligne="${i}" data-propriete="quantite"></div>
+    <div><label for="h${i}">Heures/j</label><input id="h${i}" type="number" inputmode="decimal" min="0" max="24" step="any" value="${a.heures}" data-ligne="${i}" data-propriete="heures"></div>
+    <div><label for="d${i}">Démarrage ×</label><input id="d${i}" type="number" inputmode="decimal" min="1" step="any" value="${a.demarrage}" data-ligne="${i}" data-propriete="demarrage"></div>
+  </div>
+  <div class="appareil-pied">
+    <div class="segments" role="group" aria-label="Type de courant">
+      <button type="button" data-action="courant" data-ligne="${i}" data-valeur="CA" aria-pressed="${a.courant === 'CA'}">CA</button>
+      <button type="button" data-action="courant" data-ligne="${i}" data-valeur="CC" aria-pressed="${a.courant === 'CC'}">CC</button>
+    </div>
+    <span class="energie-ligne" id="energie-${i}"></span>
+  </div>
+</div>`;
+
+function vueCharges() {
+  const puces =
+    appareilsTypes.map((a, i) => `<button type="button" class="puce" data-action="ajouter-type" data-index="${i}">${a.nom}</button>`).join('') +
+    `<button type="button" class="puce puce-vide" data-action="ajouter-vide">+ Autre appareil</button>`;
+  const lignes = etat.appareils.length
+    ? etat.appareils.map(ligneAppareil).join('')
+    : `<p class="note" style="margin:0">Aucun appareil. Touche un appareil ci-dessus pour l’ajouter.</p>`;
+  return `<section class="carte">
+    <h2>Ajouter un appareil</h2>
+    <div class="puces">${puces}</div>
+    <p class="note">Réfrigérateur et congélateur : 8 h/jour représente un compresseur qui tourne environ un tiers du temps. Le facteur de démarrage multiplie la puissance au lancement d’un moteur.</p>
+  </section>
+  <section class="carte">
+    <div class="totaux">
+      <div><span class="valeur" id="total-energie"></span><span class="legende">Wh consommés par jour</span></div>
+      <div><span class="valeur" id="total-puissance"></span><span class="legende">W installés</span></div>
+    </div>
+    <div id="liste-appareils">${lignes}</div>
+  </section>
+  <p class="message info">La liste ci-dessus est un exemple. Modifie-la ou supprime-la selon ton installation.</p>`;
+}
+
+function vueSysteme() {
+  const technologie = technologies[etat.technologie];
+  const optionsCapacite = technologie.capacites
+    .map(c => `<option value="${c}"${etat.uniteCapacite === c ? ' selected' : ''}>${c} Ah</option>`)
+    .join('');
+  const optionsModule =
+    modulesPV.map(m => `<option value="${m.id}"${etat.moduleId === m.id ? ' selected' : ''}>${m.nom}</option>`).join('') +
+    `<option value="perso"${etat.moduleId === 'perso' ? ' selected' : ''}>Module sur mesure</option>`;
+  const surMesure =
+    etat.moduleId === 'perso'
+      ? `<div class="grille" style="margin-top:14px">
+        ${[['pc', 'Pc (Wc)'], ['voc', 'Voc (V)'], ['vmp', 'Vmp (V)'], ['isc', 'Isc (A)'], ['imp', 'Imp (A)'], ['tensionNominale', 'Tension nominale (V)']]
+          .map(([cle, libelle]) => `<div class="champ"><label for="m-${cle}">${libelle}</label><input id="m-${cle}" type="number" inputmode="decimal" min="0" step="any" value="${etat.moduleSurMesure[cle]}" data-module="${cle}"></div>`)
+          .join('')}
+      </div>`
+      : `<p class="note">Valeurs types. Remplace-les par la fiche technique du module réel avec « Module sur mesure ».</p>`;
+  const vmax = etat.regulateur === 'mppt'
+    ? `<div class="champ" style="margin-top:14px"><span class="etiquette">Tension maximale d’entrée du régulateur</span>${segments('vmaxRegulateur', [['auto', 'Auto'], [100, '100 V'], [150, '150 V'], [250, '250 V'], [450, '450 V']])}</div>`
+    : '';
+  return `<section class="carte">
+    <h2>Batteries</h2>
+    <div class="champ"><span class="etiquette">Technologie</span>${segments('technologie', [['plomb', 'Plomb AGM / Gel'], ['lithium', 'Lithium LiFePO4']])}</div>
+    <div class="champ"><span class="etiquette">Autonomie sans soleil</span>
+      <div class="pas"><button type="button" data-action="autonomie" data-delta="-1" aria-label="Moins un jour">−</button><output id="autonomie-valeur">${etat.autonomie} jour${etat.autonomie > 1 ? 's' : ''}</output><button type="button" data-action="autonomie" data-delta="1" aria-label="Plus un jour">+</button></div>
+    </div>
+    <div class="champ"><span class="etiquette">Tension du système</span>${segments('tension', [['auto', 'Auto'], [12, '12 V'], [24, '24 V'], [48, '48 V']])}</div>
+    <div class="grille" style="margin-top:14px">
+      <div class="champ"><span class="etiquette">Tension d’un élément</span>${segments('uniteTension', [[12, '12 V'], [24, '24 V'], [48, '48 V']])}</div>
+      <div class="champ"><label for="uniteCapacite">Capacité d’un élément</label><select id="uniteCapacite" data-selection="uniteCapacite">${optionsCapacite}</select></div>
+    </div>
+  </section>
+  <section class="carte">
+    <h2>Panneaux</h2>
+    <div class="champ"><label for="moduleId">Module photovoltaïque</label><select id="moduleId" data-selection="moduleId">${optionsModule}</select></div>
+    ${surMesure}
+  </section>
+  <section class="carte">
+    <h2>Régulateur de charge</h2>
+    <div class="champ"><span class="etiquette">Type</span>${segments('regulateur', [['mppt', 'MPPT'], ['pwm', 'PWM']])}</div>
+    ${vmax}
+  </section>
+  <section class="carte">
+    <h2>Distances de câblage <span class="unite">mètres, aller simple</span></h2>
+    <div class="grille3">
+      <div class="champ"><label for="distanceChamp">Champ → régulateur</label>${entree('distanceChamp', 'distanceChamp', { pas: 0.5 })}</div>
+      <div class="champ"><label for="distanceBatterie">Régulateur → batterie</label>${entree('distanceBatterie', 'distanceBatterie', { pas: 0.5 })}</div>
+      <div class="champ"><label for="distanceOnduleur">Batterie → onduleur</label>${entree('distanceOnduleur', 'distanceOnduleur', { pas: 0.5 })}</div>
+    </div>
+  </section>
+  <details class="carte">
+    <summary>Paramètres avancés</summary>
+    <div class="grille">
+      <div class="champ"><label for="simultaneite">Simultanéité <span class="unite">%</span></label>${entree('simultaneite', 'simultaneite', { echelle: 100, pas: 1 })}</div>
+      <div class="champ"><label for="rendementOnduleur">Rendement onduleur <span class="unite">%</span></label>${entree('rendementOnduleur', 'rendementOnduleur', { echelle: 100, pas: 1 })}</div>
+      <div class="champ"><label for="coefficientPertes">Pertes du champ <span class="unite">% conservé</span></label>${entree('coefficientPertes', 'coefficientPertes', { echelle: 100, pas: 1 })}</div>
+      <div class="champ"><label for="profondeurDecharge">Décharge maximale <span class="unite">%</span></label>${entree('profondeurDecharge', 'profondeurDecharge', { echelle: 100, pas: 1 })}</div>
+      <div class="champ"><label for="rendementBatterie">Rendement batterie <span class="unite">%</span></label>${entree('rendementBatterie', 'rendementBatterie', { echelle: 100, pas: 1 })}</div>
+    </div>
+    <p class="note">Pertes du champ : température des cellules, poussière, câbles et dispersion entre modules.</p>
+  </details>`;
+}
+
+const ligneValeur = (etiquette, valeur) => `<div><dt>${etiquette}</dt><dd>${valeur}</dd></div>`;
+
+function vueResultats() {
+  const r = calculerDimensionnement(etat);
+  if (r.erreur) {
+    return `<section class="carte"><h2>Résultats</h2><p class="message" style="margin:0">${echapper(r.erreur)}</p></section>`;
+  }
+  const { besoins, onduleur, batterie, champ, regulateur, cables, protections } = r;
+  const technologie = technologies[etat.technologie];
+  const uniteBatterie = `${etat.uniteTension} V ${etat.uniteCapacite} Ah`;
+
+  const tuiles = `<div class="tuiles">
+    <div class="tuile principale"><span class="legende">Champ PV</span><span class="valeur">${formater(champ.puissanceInstallee)} Wc</span><span class="detail">${champ.nombreModules} × ${formater(champ.module.pc)} Wc</span></div>
+    <div class="tuile"><span class="legende">Batteries</span><span class="valeur">${formater(batterie.energieInstalleeKWh, 1)} kWh</span><span class="detail">${batterie.nombre} × ${uniteBatterie}</span></div>
+    <div class="tuile"><span class="legende">Onduleur</span><span class="valeur">${onduleur ? formater(onduleur.apparente) + ' VA' : 'Aucun'}</span><span class="detail">${onduleur ? 'onde sinusoïdale pure' : 'charges en courant continu'}</span></div>
+    <div class="tuile"><span class="legende">Régulateur</span><span class="valeur">${regulateur.nombre > 1 ? regulateur.nombre + ' × ' : ''}${regulateur.calibre} A</span><span class="detail">${regulateur.type === 'mppt' ? 'MPPT, ' + champ.vmax + ' V max' : 'PWM'}</span></div>
+  </div>
+  <section class="carte"><dl class="valeurs">
+    ${ligneValeur('Tension du système', `${r.tension} V`)}
+    ${ligneValeur('Énergie à fournir par jour', `${formater(besoins.energieBesoin)} Wh`)}
+    ${ligneValeur('Couverture au mois défavorable', `${formater(r.couverture * 100)} %`)}
+  </dl></section>`;
+
+  const alertes = r.alertes.length
+    ? r.alertes.map(a => `<p class="message${a.niveau === 'info' ? ' info' : ''}">${echapper(a.texte)}</p>`).join('')
+    : `<p class="message info">Aucune alerte : les paramètres choisis sont cohérents entre eux.</p>`;
+
+  const sectionBesoins = `<section class="carte"><h2>Besoins</h2><dl class="valeurs">
+    ${ligneValeur('Énergie en courant alternatif', `${formater(besoins.energieCA)} Wh/j`)}
+    ${ligneValeur('Énergie en courant continu', `${formater(besoins.energieCC)} Wh/j`)}
+    ${ligneValeur('Énergie à fournir (pertes onduleur)', `${formater(besoins.energieBesoin)} Wh/j`)}
+    ${ligneValeur('Puissance alternative simultanée', `${formater(besoins.puissanceSimultanee)} W`)}
+    ${ligneValeur('Pointe au démarrage', `${formater(besoins.pointe)} W`)}
+  </dl></section>`;
+
+  const sectionPanneaux = `<section class="carte"><h2>Panneaux</h2><dl class="valeurs">
+    ${ligneValeur('Puissance crête minimale', `${formater(r.puissanceCreteMin)} Wc`)}
+    ${ligneValeur('Modules nécessaires', `${champ.nombreTheorique} × ${formater(champ.module.pc)} Wc`)}
+    ${ligneValeur('Montage retenu', champ.valide ? `${champ.serie} en série × ${champ.parallele} en parallèle` : 'à revoir')}
+    ${ligneValeur('Modules installés', `${champ.nombreModules}`)}
+    ${ligneValeur('Tension à vide à froid (string)', `${formater(champ.tensionCircuitOuvert, 0)} V`)}
+    ${ligneValeur('Tension de puissance max à chaud', `${formater(champ.tensionPuissanceMax, 0)} V`)}
+    ${ligneValeur('Courant de court-circuit du champ', `${formater(champ.courantCourtCircuit, 1)} A`)}
+    ${ligneValeur('Inclinaison', `${champ.inclinaison}°`)}
+    ${ligneValeur('Orientation', champ.orientation)}
+  </dl></section>`;
+
+  const sectionBatteries = `<section class="carte"><h2>Batteries</h2><dl class="valeurs">
+    ${ligneValeur('Technologie', technologie.nom)}
+    ${ligneValeur('Énergie utile sur l’autonomie', `${formater(batterie.capaciteUtileWh)} Wh`)}
+    ${ligneValeur('Capacité requise', `${formater(batterie.capaciteRequiseAh)} Ah sous ${r.tension} V`)}
+    ${ligneValeur('Montage retenu', `${batterie.serie} en série × ${batterie.parallele} en parallèle`)}
+    ${ligneValeur('Batteries au total', `${batterie.nombre} × ${uniteBatterie}`)}
+    ${ligneValeur('Capacité installée', `${formater(batterie.capaciteInstalleeAh)} Ah`)}
+    ${ligneValeur('Courant de décharge maximal', `${formater(batterie.courantDecharge, 0)} A`)}
+  </dl></section>`;
+
+  const sectionOnduleur = onduleur
+    ? `<section class="carte"><h2>Onduleur</h2><dl class="valeurs">
+    ${ligneValeur('Puissance apparente minimale', `${formater(onduleur.apparenteMin)} VA`)}
+    ${ligneValeur('Puissance retenue', `${formater(onduleur.apparente)} VA`)}
+    ${ligneValeur('Puissance active', `${formater(onduleur.active)} W`)}
+    ${ligneValeur('Tension d’entrée', `${r.tension} V continu`)}
+    ${ligneValeur('Sortie', '220 V · 50 Hz')}
+  </dl></section>`
+    : `<section class="carte"><h2>Onduleur</h2><p class="note" style="margin:0">Toutes les charges sont en courant continu : aucun onduleur n’est nécessaire.</p></section>`;
+
+  const sectionRegulateur = `<section class="carte"><h2>Régulateur de charge</h2><dl class="valeurs">
+    ${ligneValeur('Type', regulateur.type === 'mppt' ? 'MPPT' : 'PWM')}
+    ${ligneValeur('Courant de calcul', `${formater(regulateur.courant, 1)} A`)}
+    ${ligneValeur('Calibre retenu', `${regulateur.nombre > 1 ? regulateur.nombre + ' × ' : ''}${regulateur.calibre} A`)}
+    ${regulateur.type === 'mppt' ? ligneValeur('Tension maximale d’entrée', `${champ.vmax} V`) : ''}
+    ${ligneValeur('Tension batterie', `${r.tension} V`)}
+  </dl></section>`;
+
+  const formaterSection = cable => (cable.section === null ? '> 120 mm²' : `${formater(cable.section, 1)} mm²`);
+  const lignesCables = [
+    ['Champ → régulateur', cables.champ],
+    ['Régulateur → batterie', cables.batterie],
+    ['Batterie → onduleur', cables.onduleur]
+  ]
+    .filter(([, cable]) => cable)
+    .map(([nom, cable]) => `<tr><td>${nom}</td><td>${formater(cable.courant, 0)} A</td><td>${formater(cable.longueur, 1)} m</td><td>${formaterSection(cable)}</td></tr>`)
+    .join('');
+  const ligneAlternatif = cables.alternatif
+    ? `<tr><td>Sortie onduleur</td><td>${formater(cables.alternatif.courant, 1)} A</td><td>—</td><td>${cables.alternatif.section === null ? '> 16 mm²' : formater(cables.alternatif.section, 1) + ' mm²'}</td></tr>`
+    : '';
+  const sectionCables = `<section class="carte"><h2>Câbles</h2>
+    <div class="defile"><table class="tableau"><thead><tr><th>Tronçon</th><th>Courant</th><th>Longueur</th><th>Section</th></tr></thead><tbody>${lignesCables}${ligneAlternatif}</tbody></table></div>
+    <p class="note">Cuivre, chute de tension limitée à 3 % côté panneaux et 2 % côté batterie. Câble solaire de 4 mm² au minimum entre les panneaux et le régulateur.</p>
+  </section>`;
+
+  const sectionProtections = `<section class="carte"><h2>Protections</h2><dl class="valeurs">
+    ${ligneValeur('Disjoncteur du champ (continu)', `${protections.disjoncteurChamp} A · ${protections.tensionChamp} V min`)}
+    ${protections.fusibleString ? ligneValeur('Fusible par string', `${protections.fusibleString} A`) : ''}
+    ${ligneValeur('Disjoncteur régulateur → batterie', protections.disjoncteurBatterie === null ? '> 400 A' : `${protections.disjoncteurBatterie} A`)}
+    ${protections.fusibleBatterie !== null || onduleur ? ligneValeur('Fusible batterie → onduleur', protections.fusibleBatterie === null ? '> 400 A' : `${protections.fusibleBatterie} A`) : ''}
+    ${protections.disjoncteurAlternatif ? ligneValeur('Disjoncteur de sortie (alternatif)', `${protections.disjoncteurAlternatif} A`) : ''}
+    ${ligneValeur('Parafoudres', 'continu et alternatif, mise à la terre')}
+  </dl></section>`;
+
+  const formules = `<details class="carte formules"><summary>Formules utilisées</summary>
+    <p>Énergie à fournir<code>E = E_CC + E_CA / η_onduleur, avec E = Σ P × quantité × heures</code></p>
+    <p>Puissance crête<code>Pc = E / (Ei × η_batterie × η_régulateur × k_pertes)</code></p>
+    <p>Capacité de batterie<code>C = E × N / (DoD × η_batterie × U)</code></p>
+    <p>Onduleur<code>S ≥ max(1,25 × P_simultanée ; P_pointe / 2) / 0,8</code></p>
+    <p>Régulateur MPPT<code>I = 1,25 × Pc_installée / U</code></p>
+    <p>Régulateur PWM<code>I = 1,25 × Nb_strings × Isc</code></p>
+    <p>Tension à froid et à chaud<code>Voc_froid = Voc × (1 + 0,0028 × (25 − T_min))<br>Vmp_chaud = Vmp × (1 − 0,0035 × 45)</code></p>
+    <p>Section de câble<code>s = 2 × ρ × L × I / (ΔU% × U), ρ = 0,023 Ω·mm²/m</code></p>
+    <p>Coefficients de température : valeurs types pour des modules au silicium cristallin.</p>
+  </details>`;
+
+  const actions = `<div class="actions">
+    <button type="button" class="bouton" data-action="copier">Copier le résumé</button>
+    <button type="button" class="bouton secondaire" data-action="recommencer" id="bouton-recommencer">${confirmationEffacement ? 'Confirmer l’effacement' : 'Tout recommencer'}</button>
+    <textarea id="zone-copie" readonly hidden aria-label="Résumé du dimensionnement"></textarea>
+  </div>`;
+
+  return `${tuiles}<h3>Alertes</h3>${alertes}${sectionBesoins}${sectionPanneaux}${sectionBatteries}${sectionOnduleur}${sectionRegulateur}${sectionCables}${sectionProtections}${formules}${sectionEnregistrement()}${actions}`;
+}
+
+function texteResume() {
+  const r = calculerDimensionnement(etat);
+  if (r.erreur) return r.erreur;
+  const { besoins, onduleur, batterie, champ, regulateur, cables, protections } = r;
+  const lignes = [
+    'DIMENSIONNEMENT D’UN SYSTÈME PHOTOVOLTAÏQUE AUTONOME',
+    '',
+    `Lieu : ${etat.ville === 'autre' ? 'site personnalisé' : etat.ville} · irradiation du mois défavorable : ${formater(etat.irradiation, 1)} kWh/m²/j`,
+    `Énergie à fournir : ${formater(besoins.energieBesoin)} Wh/j (CA ${formater(besoins.energieCA)} Wh, CC ${formater(besoins.energieCC)} Wh)`,
+    `Tension du système : ${r.tension} V`,
+    '',
+    `Panneaux : ${champ.nombreModules} × ${formater(champ.module.pc)} Wc = ${formater(champ.puissanceInstallee)} Wc (${champ.serie} série × ${champ.parallele} parallèle)`,
+    `Inclinaison ${champ.inclinaison}°, orientation ${champ.orientation}`,
+    `Batteries : ${batterie.nombre} × ${etat.uniteTension} V ${etat.uniteCapacite} Ah (${technologies[etat.technologie].nom}), ${batterie.serie} série × ${batterie.parallele} parallèle, ${formater(batterie.energieInstalleeKWh, 1)} kWh, autonomie ${etat.autonomie} j`,
+    onduleur ? `Onduleur : ${formater(onduleur.apparente)} VA (${formater(onduleur.active)} W), entrée ${r.tension} V` : 'Onduleur : aucun',
+    `Régulateur : ${regulateur.nombre > 1 ? regulateur.nombre + ' × ' : ''}${regulateur.calibre} A ${regulateur.type.toUpperCase()}${regulateur.type === 'mppt' ? `, ${champ.vmax} V max` : ''}`,
+    '',
+    `Câble champ → régulateur : ${cables.champ.section === null ? '> 120' : cables.champ.section} mm² (${formater(cables.champ.courant, 0)} A)`,
+    `Câble régulateur → batterie : ${cables.batterie.section === null ? '> 120' : cables.batterie.section} mm² (${formater(cables.batterie.courant, 0)} A)`,
+    cables.onduleur ? `Câble batterie → onduleur : ${cables.onduleur.section === null ? '> 120' : cables.onduleur.section} mm² (${formater(cables.onduleur.courant, 0)} A)` : null,
+    `Disjoncteur champ : ${protections.disjoncteurChamp} A, ${protections.tensionChamp} V min`,
+    protections.fusibleString ? `Fusible par string : ${protections.fusibleString} A` : null,
+    protections.fusibleBatterie ? `Fusible batterie → onduleur : ${protections.fusibleBatterie} A` : null,
+    protections.disjoncteurAlternatif ? `Disjoncteur alternatif : ${protections.disjoncteurAlternatif} A` : null
+  ];
+  return lignes.filter(ligne => ligne !== null).join('\n');
+}
+
+function notifier(message) {
+  const element = document.getElementById('notification');
+  element.textContent = message;
+  element.hidden = false;
+  clearTimeout(minuteurNotification);
+  minuteurNotification = setTimeout(() => { element.hidden = true; }, 2600);
+}
+
+function mettreAJourTotaux() {
+  const totalEnergie = document.getElementById('total-energie');
+  if (!totalEnergie) return;
+  const valides = etat.appareils.filter(a => a.puissance > 0 && a.quantite > 0 && a.heures > 0);
+  totalEnergie.textContent = formater(somme(valides, a => a.puissance * a.quantite * a.heures));
+  document.getElementById('total-puissance').textContent = formater(somme(etat.appareils, a => a.puissance * a.quantite));
+  etat.appareils.forEach((a, i) => {
+    const energie = document.getElementById(`energie-${i}`);
+    if (energie) energie.textContent = `${formater(a.puissance * a.quantite * a.heures)} Wh/j`;
+  });
+}
+
+function afficherEtapes() {
+  document.getElementById('etapes').innerHTML = nomsEtapes
+    .map((nom, i) => `<button type="button" data-action="aller" data-etape="${i}" class="${i < etat.etape ? 'faite' : ''}"${i === etat.etape ? ' aria-current="step"' : ''}><span class="numero">${i + 1}</span>${nom}</button>`)
+    .join('');
+}
+
+function afficherEcranSpecial(contenu, remonter) {
+  document.getElementById('vue').innerHTML = contenu;
+  document.getElementById('etapes').hidden = true;
+  document.querySelector('.barre').hidden = true;
+  if (remonter) window.scrollTo({ top: 0 });
+}
+
+function afficher(remonter = false) {
+  afficherCompte();
+  if (compte.mode === 'attente') return afficherEcranSpecial('<p class="note">Chargement…</p>', remonter);
+  if (compte.mode === 'nuage' && !compte.utilisateur) return afficherEcranSpecial(vueConnexion(), remonter);
+  if (vueActuelle === 'historique') return afficherEcranSpecial(vueHistorique(), remonter);
+  document.getElementById('etapes').hidden = false;
+  document.querySelector('.barre').hidden = false;
+  const vues = [vueSite, vueCharges, vueSysteme, vueResultats];
+  document.getElementById('vue').innerHTML = vues[etat.etape]();
+  afficherEtapes();
+  const precedent = document.getElementById('precedent');
+  const suivant = document.getElementById('suivant');
+  precedent.hidden = etat.etape === 0;
+  precedent.textContent = etat.etape === nomsEtapes.length - 1 ? 'Modifier les données' : 'Précédent';
+  suivant.hidden = etat.etape === nomsEtapes.length - 1;
+  suivant.textContent = etat.etape === nomsEtapes.length - 2 ? 'Voir les résultats' : 'Suivant';
+  mettreAJourTotaux();
+  if (remonter) window.scrollTo({ top: 0 });
+}
+
+function aller(etape) {
+  etat.etape = Math.max(0, Math.min(nomsEtapes.length - 1, etape));
+  confirmationEffacement = false;
+  sauvegarder();
+  afficher(true);
+}
+
+function choisirTechnologie(nom) {
+  const technologie = technologies[nom];
+  etat.technologie = nom;
+  etat.profondeurDecharge = technologie.profondeurDecharge;
+  etat.rendementBatterie = technologie.rendement;
+  if (!technologie.capacites.includes(etat.uniteCapacite)) {
+    etat.uniteCapacite = technologie.capacites.reduce((proche, c) => (Math.abs(c - etat.uniteCapacite) < Math.abs(proche - etat.uniteCapacite) ? c : proche));
+  }
+}
+
+function appliquerVille(nom) {
+  etat.ville = nom;
+  const ville = villes.find(v => v.nom === nom);
+  if (ville) {
+    etat.irradiation = ville.irradiation;
+    etat.temperatureMin = ville.temperatureMin;
+    etat.latitude = ville.latitude;
+  }
+}
+
+async function copierResume() {
+  const texte = texteResume();
+  const zone = document.getElementById('zone-copie');
+  try {
+    await navigator.clipboard.writeText(texte);
+    notifier('Résumé copié');
+  } catch (erreur) {
+    zone.value = texte;
+    zone.hidden = false;
+    zone.focus();
+    zone.select();
+    notifier('Copie impossible : texte sélectionné, copie-le à la main');
+  }
+}
+
+function afficherCompte() {
+  const zone = document.getElementById('compte');
+  if (compte.mode === 'attente' || (compte.mode === 'nuage' && !compte.utilisateur)) {
+    zone.hidden = true;
+    return;
+  }
+  zone.hidden = false;
+  if (compte.mode === 'nuage') {
+    const libelle = vueActuelle === 'historique' ? 'Retour' : 'Historique';
+    const email = echapper(compte.utilisateur.email);
+    zone.innerHTML = `<span class="compte-email" title="${email}">${email}</span><button type="button" class="lien" data-action="historique">${libelle}</button><button type="button" class="lien" data-action="deconnexion">Déconnexion</button>`;
+  } else {
+    const horsLigne = compte.raison === 'indisponible';
+    const texte = horsLigne ? 'Hors ligne · données gardées sur cet appareil' : 'Sans compte · données gardées sur cet appareil';
+    const reessayer = horsLigne ? '<button type="button" class="lien" data-action="recharger">Réessayer</button>' : '';
+    zone.innerHTML = `<span class="compte-email">${texte}</span>${reessayer}`;
+  }
+}
+
+function vueConnexion() {
+  const inscription = modeAuth === 'inscription';
+  const confirmation = inscription
+    ? `<div class="champ"><label for="auth-confirmation">Confirme le mot de passe</label><input id="auth-confirmation" type="password" autocomplete="new-password" required></div>`
+    : '';
+  const oubli = inscription ? '' : `<button type="button" class="lien" data-action="mdp-oublie">Mot de passe oublié ?</button>`;
+  return `<section class="carte connexion">
+    <h2>${inscription ? 'Créer un compte' : 'Connexion'}</h2>
+    <div class="segments" role="group">
+      <button type="button" data-action="mode-auth" data-valeur="connexion" aria-pressed="${!inscription}">Se connecter</button>
+      <button type="button" data-action="mode-auth" data-valeur="inscription" aria-pressed="${inscription}">Nouveau compte</button>
+    </div>
+    <form id="formulaire-auth" novalidate>
+      <div class="champ"><label for="auth-email">Adresse e-mail</label><input id="auth-email" type="email" inputmode="email" autocomplete="email" value="${echapper(emailSaisi)}" style="font-family:var(--police)" required></div>
+      <div class="champ"><label for="auth-mdp">Mot de passe <span class="unite">6 caractères minimum</span></label><input id="auth-mdp" type="password" autocomplete="${inscription ? 'new-password' : 'current-password'}" required></div>
+      ${confirmation}
+      <p class="message${messageAuth.info ? ' info' : ''}" id="message-auth" role="alert"${messageAuth.texte ? '' : ' hidden'}>${echapper(messageAuth.texte)}</p>
+      <button type="submit" class="bouton" id="bouton-auth">${inscription ? 'Créer mon compte' : 'Se connecter'}</button>
+    </form>
+    ${oubli}
+    <p class="note">Le compte sert uniquement à garder l’historique de tes dimensionnements.</p>
+  </section>`;
+}
+
+function afficherMessageAuth(texte, info = false) {
+  messageAuth = { texte, info };
+  const element = document.getElementById('message-auth');
+  if (!element) return;
+  element.textContent = texte;
+  element.className = info ? 'message info' : 'message';
+  element.hidden = !texte;
+}
+
+function basculerChargement(actif) {
+  const bouton = document.getElementById('bouton-auth');
+  if (!bouton) return;
+  bouton.disabled = actif;
+  bouton.textContent = actif ? 'Un instant…' : modeAuth === 'inscription' ? 'Créer mon compte' : 'Se connecter';
+}
+
+function texteErreurAuth(erreur) {
+  const code = erreur && erreur.code ? erreur.code : '';
+  const textes = {
+    'auth/invalid-email': 'Adresse e-mail invalide.',
+    'auth/missing-password': 'Saisis ton mot de passe.',
+    'auth/weak-password': 'Mot de passe trop court : 6 caractères minimum.',
+    'auth/email-already-in-use': 'Cette adresse a déjà un compte. Utilise l’onglet « Se connecter ».',
+    'auth/invalid-credential': 'E-mail ou mot de passe incorrect.',
+    'auth/wrong-password': 'E-mail ou mot de passe incorrect.',
+    'auth/user-not-found': 'E-mail ou mot de passe incorrect.',
+    'auth/too-many-requests': 'Trop de tentatives. Réessaie dans quelques minutes.',
+    'auth/network-request-failed': 'Pas de connexion Internet.',
+    'auth/operation-not-allowed': 'La connexion par e-mail n’est pas activée dans Firebase.',
+    'auth/unauthorized-domain': 'Ce site n’est pas autorisé dans Firebase (Authentication, Paramètres, Domaines autorisés).'
+  };
+  return textes[code] || `Erreur inattendue${code ? ' (' + code + ')' : ''}. Réessaie.`;
+}
+
+function carteEtude(etude) {
+  const resume = etude.resume || {};
+  const date = etude.creeLe ? etude.creeLe.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+  const confirmation = etudeASupprimer === etude.id;
+  const identifiant = echapper(etude.id);
+  return `<div class="etude">
+    <p class="etude-nom">${echapper(etude.nom || 'Étude sans nom')}</p>
+    <p class="etude-date">${echapper(date)}</p>
+    <p class="etude-resume">${formater(resume.puissanceCrete || 0)} Wc · ${resume.batteries || 0} × ${echapper(resume.uniteBatterie || '')} · ${formater(resume.onduleurVA || 0)} VA · ${echapper(resume.regulateur || '')}</p>
+    <div class="etude-actions">
+      <button type="button" class="bouton" data-action="ouvrir-etude" data-id="${identifiant}">Ouvrir</button>
+      <button type="button" class="bouton secondaire" data-action="supprimer-etude" data-id="${identifiant}">${confirmation ? 'Confirmer' : 'Supprimer'}</button>
+    </div>
+  </div>`;
+}
+
+function vueHistorique() {
+  let contenu;
+  if (etudes === null) contenu = '<p class="note" style="margin:0">Chargement de ton historique…</p>';
+  else if (erreurHistorique) contenu = `<p class="message" style="margin:0">${echapper(erreurHistorique)}</p>`;
+  else if (!etudes.length) contenu = '<p class="note" style="margin:0">Aucune étude enregistrée. Fais un dimensionnement, puis touche « Enregistrer » sur l’écran Résultats.</p>';
+  else contenu = etudes.map(carteEtude).join('');
+  return `<section class="carte"><h2>Historique de dimensionnement</h2>${contenu}</section>`;
+}
+
+async function chargerHistorique() {
+  etudes = null;
+  erreurHistorique = '';
+  etudeASupprimer = null;
+  afficher(true);
+  try {
+    etudes = await window.nuage.lister(compte.utilisateur.uid);
+  } catch (erreur) {
+    etudes = [];
+    erreurHistorique = 'Impossible de charger l’historique. Vérifie ta connexion Internet.';
+  }
+  if (vueActuelle === 'historique') afficher();
+}
+
+function nomParDefaut() {
+  const lieu = etat.ville === 'autre' ? 'site personnalisé' : etat.ville;
+  return `${lieu} · ${new Date().toLocaleDateString('fr-FR')}`;
+}
+
+function sectionEnregistrement() {
+  if (compte.mode !== 'nuage' || !compte.utilisateur) return '';
+  return `<section class="carte"><h2>Enregistrer dans mon historique</h2>
+    <div class="champ"><label for="nom-etude">Nom de l’étude <span class="unite">facultatif</span></label><input id="nom-etude" type="text" maxlength="120" placeholder="${echapper(nomParDefaut())}" style="font-family:var(--police)"></div>
+    <button type="button" class="bouton" data-action="enregistrer-etude" style="width:100%;margin-top:12px">Enregistrer</button>
+  </section>`;
+}
+
+async function enregistrerEtude() {
+  if (enregistrementEnCours) return;
+  const r = calculerDimensionnement(etat);
+  if (r.erreur) {
+    notifier(r.erreur);
+    return;
+  }
+  const champNom = document.getElementById('nom-etude');
+  const nom = (champNom && champNom.value.trim()) || nomParDefaut();
+  const regulateur = `${r.regulateur.nombre > 1 ? r.regulateur.nombre + ' × ' : ''}${r.regulateur.calibre} A ${r.regulateur.type.toUpperCase()}`;
+  const etude = {
+    nom,
+    entrees: JSON.stringify({ ...etat, etape: 0 }),
+    resume: {
+      ville: etat.ville,
+      puissanceCrete: r.champ.puissanceInstallee,
+      batteries: r.batterie.nombre,
+      uniteBatterie: `${etat.uniteTension} V ${etat.uniteCapacite} Ah`,
+      onduleurVA: r.onduleur ? r.onduleur.apparente : 0,
+      regulateur,
+      tension: r.tension,
+      energieJour: Math.round(r.besoins.energieBesoin)
+    }
+  };
+  enregistrementEnCours = true;
+  try {
+    await window.nuage.enregistrer(compte.utilisateur.uid, etude);
+    etudes = null;
+    notifier('Étude enregistrée dans ton historique');
+  } catch (erreur) {
+    notifier('Enregistrement impossible : vérifie ta connexion Internet.');
+  }
+  enregistrementEnCours = false;
+}
+
+function ouvrirEtude(identifiant) {
+  const etude = (etudes || []).find(e => e.id === identifiant);
+  if (!etude) return;
+  try {
+    const entrees = JSON.parse(etude.entrees);
+    const base = etatParDefaut();
+    etat = {
+      ...base,
+      ...entrees,
+      moduleSurMesure: { ...base.moduleSurMesure, ...(entrees.moduleSurMesure || {}) },
+      appareils: Array.isArray(entrees.appareils) ? entrees.appareils : base.appareils,
+      etape: 3
+    };
+  } catch (erreur) {
+    notifier('Cette étude est illisible.');
+    return;
+  }
+  vueActuelle = 'etapes';
+  sauvegarder();
+  afficher(true);
+  notifier('Étude ouverte');
+}
+
+function demarrerNuage() {
+  window.nuage.ecouterConnexion(utilisateur => {
+    compte.mode = 'nuage';
+    compte.utilisateur = utilisateur;
+    vueActuelle = 'etapes';
+    etudes = null;
+    etudeASupprimer = null;
+    messageAuth = { texte: '', info: false };
+    afficher(true);
+  });
+}
+
+function passerEnLocal() {
+  compte.mode = 'local';
+  compte.raison = 'indisponible';
+  afficher();
+}
+
+document.addEventListener('submit', async evenement => {
+  if (evenement.target.id !== 'formulaire-auth') return;
+  evenement.preventDefault();
+  const email = document.getElementById('auth-email').value.trim();
+  const motDePasse = document.getElementById('auth-mdp').value;
+  emailSaisi = email;
+  if (!/^\S+@\S+\.\S+$/.test(email)) return afficherMessageAuth('Adresse e-mail invalide.');
+  if (motDePasse.length < 6) return afficherMessageAuth('Mot de passe trop court : 6 caractères minimum.');
+  if (modeAuth === 'inscription' && motDePasse !== document.getElementById('auth-confirmation').value) {
+    return afficherMessageAuth('Les deux mots de passe ne sont pas identiques.');
+  }
+  afficherMessageAuth('');
+  basculerChargement(true);
+  try {
+    if (modeAuth === 'inscription') await window.nuage.inscrire(email, motDePasse);
+    else await window.nuage.connecter(email, motDePasse);
+  } catch (erreur) {
+    afficherMessageAuth(texteErreurAuth(erreur));
+    basculerChargement(false);
+  }
+});
+
+const vue = document.getElementById('vue');
+
+vue.addEventListener('input', evenement => {
+  const cible = evenement.target;
+  if (cible.dataset.cle !== undefined) {
+    const echelle = Number(cible.dataset.echelle || 1);
+    const valeur = cible.value === '' ? 0 : Number(cible.value) / echelle;
+    if (Number.isFinite(valeur)) etat[cible.dataset.cle] = valeur;
+    if (['irradiation', 'temperatureMin', 'latitude'].includes(cible.dataset.cle)) {
+      etat.ville = 'autre';
+      const selection = document.getElementById('ville');
+      if (selection) selection.value = 'autre';
+    }
+  } else if (cible.dataset.ligne !== undefined) {
+    const ligne = etat.appareils[Number(cible.dataset.ligne)];
+    const propriete = cible.dataset.propriete;
+    ligne[propriete] = propriete === 'nom' ? cible.value : cible.value === '' ? 0 : Number(cible.value);
+    mettreAJourTotaux();
+  } else if (cible.dataset.module !== undefined) {
+    etat.moduleSurMesure[cible.dataset.module] = cible.value === '' ? 0 : Number(cible.value);
+  }
+  sauvegarder();
+});
+
+vue.addEventListener('change', evenement => {
+  const cible = evenement.target;
+  const selection = cible.dataset.selection;
+  if (!selection) return;
+  if (selection === 'ville') {
+    appliquerVille(cible.value);
+    afficher();
+  } else if (selection === 'moduleId') {
+    etat.moduleId = cible.value;
+    afficher();
+  } else if (selection === 'uniteCapacite') {
+    etat.uniteCapacite = Number(cible.value);
+  }
+  sauvegarder();
+});
+
+document.addEventListener('click', evenement => {
+  const bouton = evenement.target.closest('[data-action]');
+  if (!bouton) return;
+  const action = bouton.dataset.action;
+  if (action === 'aller') {
+    aller(Number(bouton.dataset.etape));
+  } else if (action === 'choisir') {
+    const brut = bouton.dataset.valeur;
+    const valeur = brut === 'auto' || Number.isNaN(Number(brut)) ? brut : Number(brut);
+    if (bouton.dataset.cle === 'technologie') choisirTechnologie(valeur);
+    else etat[bouton.dataset.cle] = valeur;
+    sauvegarder();
+    afficher();
+  } else if (action === 'ajouter-type') {
+    etat.appareils.push({ ...appareilsTypes[Number(bouton.dataset.index)] });
+    sauvegarder();
+    afficher();
+  } else if (action === 'ajouter-vide') {
+    etat.appareils.push({ nom: '', puissance: 0, quantite: 1, heures: 1, demarrage: 1, courant: 'CA' });
+    sauvegarder();
+    afficher();
+  } else if (action === 'supprimer') {
+    etat.appareils.splice(Number(bouton.dataset.ligne), 1);
+    sauvegarder();
+    afficher();
+  } else if (action === 'courant') {
+    etat.appareils[Number(bouton.dataset.ligne)].courant = bouton.dataset.valeur;
+    sauvegarder();
+    afficher();
+  } else if (action === 'autonomie') {
+    etat.autonomie = Math.max(1, Math.min(7, etat.autonomie + Number(bouton.dataset.delta)));
+    document.getElementById('autonomie-valeur').textContent = `${etat.autonomie} jour${etat.autonomie > 1 ? 's' : ''}`;
+    sauvegarder();
+  } else if (action === 'copier') {
+    copierResume();
+  } else if (action === 'mode-auth') {
+    const saisi = document.getElementById('auth-email');
+    if (saisi) emailSaisi = saisi.value.trim();
+    modeAuth = bouton.dataset.valeur;
+    messageAuth = { texte: '', info: false };
+    afficher();
+  } else if (action === 'mdp-oublie') {
+    const saisi = document.getElementById('auth-email');
+    const email = saisi ? saisi.value.trim() : '';
+    emailSaisi = email;
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      afficherMessageAuth('Saisis ton adresse e-mail ci-dessus, puis touche « Mot de passe oublié ».');
+    } else {
+      window.nuage.reinitialiser(email)
+        .then(() => afficherMessageAuth(`Si un compte existe pour ${email}, un e-mail de réinitialisation vient d’être envoyé.`, true))
+        .catch(erreur => afficherMessageAuth(texteErreurAuth(erreur)));
+    }
+  } else if (action === 'deconnexion') {
+    etat = etatParDefaut();
+    sauvegarder();
+    window.nuage.deconnecter();
+  } else if (action === 'historique') {
+    vueActuelle = vueActuelle === 'historique' ? 'etapes' : 'historique';
+    if (vueActuelle === 'historique') chargerHistorique();
+    else afficher(true);
+  } else if (action === 'recharger') {
+    window.location.reload();
+  } else if (action === 'enregistrer-etude') {
+    enregistrerEtude();
+  } else if (action === 'ouvrir-etude') {
+    ouvrirEtude(bouton.dataset.id);
+  } else if (action === 'supprimer-etude') {
+    const identifiant = bouton.dataset.id;
+    if (etudeASupprimer !== identifiant) {
+      etudeASupprimer = identifiant;
+      afficher();
+      setTimeout(() => {
+        if (etudeASupprimer === identifiant) {
+          etudeASupprimer = null;
+          if (vueActuelle === 'historique') afficher();
+        }
+      }, 4000);
+    } else {
+      etudeASupprimer = null;
+      window.nuage.supprimer(compte.utilisateur.uid, identifiant)
+        .then(() => {
+          etudes = (etudes || []).filter(e => e.id !== identifiant);
+          afficher();
+          notifier('Étude supprimée');
+        })
+        .catch(() => notifier('Suppression impossible : vérifie ta connexion Internet.'));
+    }
+  } else if (action === 'recommencer') {
+    if (!confirmationEffacement) {
+      confirmationEffacement = true;
+      bouton.textContent = 'Confirmer l’effacement';
+      clearTimeout(minuteurConfirmation);
+      minuteurConfirmation = setTimeout(() => {
+        confirmationEffacement = false;
+        const courant = document.getElementById('bouton-recommencer');
+        if (courant) courant.textContent = 'Tout recommencer';
+      }, 4000);
+    } else {
+      confirmationEffacement = false;
+      etat = etatParDefaut();
+      sauvegarder();
+      afficher(true);
+      notifier('Données réinitialisées');
+    }
+  }
+});
+
+document.getElementById('precedent').addEventListener('click', () => aller(etat.etape - 1));
+document.getElementById('suivant').addEventListener('click', () => aller(etat.etape + 1));
+
+if (compte.mode === 'attente') {
+  window.addEventListener('nuage-pret', () => { if (compte.mode === 'attente') demarrerNuage(); });
+  window.addEventListener('nuage-indisponible', () => { if (compte.mode === 'attente') passerEnLocal(); });
+  setTimeout(() => { if (compte.mode === 'attente') passerEnLocal(); }, 12000);
+}
+
+afficher();
+</script>
+<script type="module" id="module-nuage">
+const configuration = window.configurationFirebase;
+if (configuration && configuration.apiKey && configuration.projectId) {
+  try {
+    const racine = 'https://www.gstatic.com/firebasejs/10.12.2';
+    const [moduleApplication, moduleAuthentification, moduleBase] = await Promise.all([
+      import(`${racine}/firebase-app.js`),
+      import(`${racine}/firebase-auth.js`),
+      import(`${racine}/firebase-firestore.js`)
+    ]);
+    const application = moduleApplication.initializeApp(configuration);
+    const authentification = moduleAuthentification.getAuth(application);
+    const base = moduleBase.getFirestore(application);
+    const etudesDe = uid => moduleBase.collection(base, 'utilisateurs', uid, 'etudes');
+    window.nuage = {
+      ecouterConnexion: rappel =>
+        moduleAuthentification.onAuthStateChanged(authentification, utilisateur =>
+          rappel(utilisateur ? { uid: utilisateur.uid, email: utilisateur.email } : null)
+        ),
+      inscrire: (email, motDePasse) => moduleAuthentification.createUserWithEmailAndPassword(authentification, email, motDePasse),
+      connecter: (email, motDePasse) => moduleAuthentification.signInWithEmailAndPassword(authentification, email, motDePasse),
+      reinitialiser: email => moduleAuthentification.sendPasswordResetEmail(authentification, email),
+      deconnecter: () => moduleAuthentification.signOut(authentification),
+      enregistrer: (uid, etude) => moduleBase.addDoc(etudesDe(uid), { ...etude, creeLe: moduleBase.serverTimestamp() }),
+      lister: async uid => {
+        const instantane = await moduleBase.getDocs(
+          moduleBase.query(etudesDe(uid), moduleBase.orderBy('creeLe', 'desc'), moduleBase.limit(50))
+        );
+        return instantane.docs.map(ligne => {
+          const donnees = ligne.data();
+          return { id: ligne.id, ...donnees, creeLe: donnees.creeLe ? donnees.creeLe.toDate() : null };
+        });
+      },
+      supprimer: (uid, identifiant) => moduleBase.deleteDoc(moduleBase.doc(base, 'utilisateurs', uid, 'etudes', identifiant))
+    };
+    window.dispatchEvent(new Event('nuage-pret'));
+  } catch (erreur) {
+    window.dispatchEvent(new Event('nuage-indisponible'));
+  }
+}
+</script>
+
+</body></html>
