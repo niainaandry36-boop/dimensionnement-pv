@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dimensionnement PV</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"></head><body>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>DimTechPv · Dimensionnement solaire</title><meta name="description" content="DimTechPv (DTP) : dimensionne une installation solaire autonome et compare les offres avec le prix en Ariary."><meta property="og:title" content="DimTechPv · Dimensionnement solaire"><meta property="og:description" content="Panneaux, batteries, onduleur, régulateur : trois offres chiffrées en Ariary."><meta name="theme-color" content="#0d6b66"><meta name="application-name" content="DimTechPv"><meta name="apple-mobile-web-app-title" content="DTP"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2215%22%20fill=%22%230d6b66%22/%3E%3Cg%20stroke=%22%23f7c948%22%20stroke-width=%223%22%20stroke-linecap=%22round%22%20fill=%22none%22%3E%3Cpath%20d=%22M13%2028h6M18.6%2014.6l4.2%204.2M32%209v6M45.4%2014.6l-4.2%204.2M51%2028h-6%22/%3E%3C/g%3E%3Ccircle%20cx=%2232%22%20cy=%2228%22%20r=%229%22%20fill=%22%23f7c948%22/%3E%3Cpath%20d=%22M14%2056l6-16h24l6%2016z%22%20fill=%22%23e8f4f2%22/%3E%3Cpath%20d=%22M28%2040l-2%2016M36%2040l2%2016M17%2048h30%22%20stroke=%22%230d6b66%22%20stroke-width=%221.6%22%20fill=%22none%22/%3E%3C/svg%3E"><meta name="claude:viewport-fit-sides" content="cover"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="logo-dtp" viewBox="0 0 64 64"><rect x="1" y="1" width="62" height="62" rx="15" fill="#0d6b66" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/><g stroke="#f7c948" stroke-width="3" stroke-linecap="round" fill="none"><path d="M13 28h6M18.6 14.6l4.2 4.2M32 9v6M45.4 14.6l-4.2 4.2M51 28h-6"/></g><circle cx="32" cy="28" r="9" fill="#f7c948"/><path d="M14 56l6-16h24l6 16z" fill="#e8f4f2"/><path d="M28 40l-2 16M36 40l2 16M17 48h30" stroke="#0d6b66" stroke-width="1.6" fill="none"/></symbol></svg>
 <style>
 :root {
   --fond: #f3f5f3;
@@ -283,6 +284,41 @@ textarea {
 .etude-resume { margin: 8px 0 0; font: 500 13px var(--chiffres); overflow-wrap: anywhere; }
 .etude-actions { display: flex; gap: 8px; margin-top: 10px; }
 .etude-actions .bouton { min-height: 40px; font-size: 14px; }
+.titre-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.marque { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo { flex: none; display: block; width: 38px; height: 38px; }
+.entete h1 .tech { color: var(--accent); }
+.hero, .bandeau { color: #ffffff; background: radial-gradient(circle at 88% 12%, rgba(247, 201, 72, 0.55), rgba(247, 201, 72, 0) 44%), linear-gradient(160deg, #0a4a46, #0d6b66 62%, #158a82); }
+.hero { margin-top: 12px; padding: 24px 20px; border-radius: 18px; }
+.hero .logo { width: 64px; height: 64px; }
+.hero-nom { margin: 14px 0 0; font: 600 13px var(--chiffres); letter-spacing: 0.08em; text-transform: uppercase; color: #f7c948; }
+.hero h2 { margin: 6px 0 8px; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; color: #ffffff; }
+.hero p:not(.hero-nom) { margin: 0; font-size: 15px; opacity: 0.93; }
+.puces-hero { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.puces-hero span { padding: 4px 11px; border-radius: 14px; background: rgba(255, 255, 255, 0.16); font-size: 13px; font-weight: 500; }
+.bandeau { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 14px 16px; border-radius: 14px; }
+.bandeau .logo { width: 46px; height: 46px; }
+.bandeau p { margin: 0; font-size: 14px; }
+.bandeau strong { display: block; font-size: 16px; }
+.appareil-champs.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.offre.choisie { border-color: var(--accent); box-shadow: 0 0 0 1.5px var(--accent) inset; }
+.offre-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.offre-titre { margin: 0; }
+.badge { padding: 3px 10px; border-radius: 12px; background: var(--solaire-fond); color: var(--solaire-encre); font-size: 12px; font-weight: 600; }
+.offre-prix { margin: 8px 0 0; font: 600 28px/1.1 var(--chiffres); }
+.offre-sous { margin: 4px 0 10px; font-size: 13px; color: var(--encre-douce); }
+.offre .bouton { width: 100%; margin-top: 14px; }
+.choix { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 58px; padding: 10px 12px; margin-top: 8px; border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); color: var(--encre); text-align: left; font: 500 14px var(--police); cursor: pointer; }
+.choix[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1.5px var(--accent) inset; }
+.choix:disabled { opacity: 0.6; cursor: not-allowed; }
+.choix-texte { min-width: 0; }
+.choix-nom { display: block; font-weight: 600; }
+.choix-detail { display: block; margin-top: 2px; font-size: 12px; color: var(--encre-douce); overflow-wrap: anywhere; }
+.choix-prix { flex: none; text-align: right; font: 600 14px var(--chiffres); }
+.choix-delta { display: block; margin-top: 2px; font: 500 12px var(--chiffres); color: var(--encre-douce); }
+.choix-delta.plus { color: var(--solaire-encre); }
+.choix-delta.moins { color: var(--accent); }
+.valeurs > div.total dt, .valeurs > div.total dd { font-weight: 600; color: var(--encre); }
 @media (prefers-reduced-motion: no-preference) {
   .carte, .tuile { animation: apparition 0.2s ease-out; }
   @keyframes apparition { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -291,8 +327,8 @@ textarea {
 
 <div class="application">
   <header class="entete">
-    <h1>Dimensionnement PV</h1>
-    <p class="sous-titre">Site isolé · batteries · 220 V / 50 Hz</p>
+    <div class="titre-ligne"><div class="marque"><svg class="logo" aria-hidden="true" focusable="false"><use href="#logo-dtp"></use></svg><h1>Dim<span class="tech">Tech</span>Pv</h1></div><button type="button" class="lien" id="bascule-mode" data-action="mode" hidden></button></div>
+    <p class="sous-titre">DTP · Solaire autonome · Madagascar</p>
     <div class="compte" id="compte" hidden></div>
     <nav class="etapes" id="etapes" aria-label="Étapes"></nav>
   </header>
@@ -318,7 +354,9 @@ window.configurationFirebase = {
 </script>
 <script>
 const cleStockage = 'dimensionnement-pv-v1';
-const nomsEtapes = ['Site', 'Charges', 'Système', 'Résultats'];
+const nomsEtapesSimple = ['Région', 'Appareils', 'Autonomie', 'Offres'];
+const nomsEtapesAvance = ['Site', 'Charges', 'Système', 'Résultats'];
+const nomsEtapes = () => (etat.mode === 'avance' ? nomsEtapesAvance : nomsEtapesSimple);
 
 const villes = [
   { nom: 'Antananarivo', latitude: -18.9, irradiation: 4.5, temperatureMin: 5 },
@@ -333,6 +371,7 @@ const villes = [
 
 const appareilsTypes = [
   { nom: 'Lampe LED', puissance: 9, quantite: 1, heures: 5, demarrage: 1, courant: 'CA' },
+  { nom: 'Radio', puissance: 10, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
   { nom: 'Télévision LED', puissance: 80, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
   { nom: 'Décodeur', puissance: 20, quantite: 1, heures: 4, demarrage: 1, courant: 'CA' },
   { nom: 'Réfrigérateur', puissance: 150, quantite: 1, heures: 8, demarrage: 4, courant: 'CA' },
@@ -367,6 +406,9 @@ const tensionsRegulateur = [100, 150, 250, 450];
 
 const etatParDefaut = () => ({
   etape: 0,
+  mode: 'simple',
+  offre: 'equi',
+  config: null,
   ville: 'Antananarivo',
   irradiation: 4.5,
   temperatureMin: 5,
@@ -435,6 +477,8 @@ let etudes = null;
 let erreurHistorique = '';
 let etudeASupprimer = null;
 let enregistrementEnCours = false;
+let detailTechnique = false;
+let prixOuverts = false;
 
 const formater = (valeur, decimales = 0) =>
   new Intl.NumberFormat('fr-FR', { maximumFractionDigits: decimales, minimumFractionDigits: 0 }).format(valeur);
@@ -743,7 +787,7 @@ function vueSysteme() {
     <h2>Batteries</h2>
     <div class="champ"><span class="etiquette">Technologie</span>${segments('technologie', [['plomb', 'Plomb AGM / Gel'], ['lithium', 'Lithium LiFePO4']])}</div>
     <div class="champ"><span class="etiquette">Autonomie sans soleil</span>
-      <div class="pas"><button type="button" data-action="autonomie" data-delta="-1" aria-label="Moins un jour">−</button><output id="autonomie-valeur">${etat.autonomie} jour${etat.autonomie > 1 ? 's' : ''}</output><button type="button" data-action="autonomie" data-delta="1" aria-label="Plus un jour">+</button></div>
+      <div class="pas"><button type="button" data-action="autonomie" data-delta="-1" aria-label="Moins un jour">−</button><output id="autonomie-valeur">${libelleAutonomie(etat.autonomie)}</output><button type="button" data-action="autonomie" data-delta="1" aria-label="Plus un jour">+</button></div>
     </div>
     <div class="champ"><span class="etiquette">Tension du système</span>${segments('tension', [['auto', 'Auto'], [12, '12 V'], [24, '24 V'], [48, '48 V']])}</div>
     <div class="grille" style="margin-top:14px">
@@ -780,6 +824,505 @@ function vueSysteme() {
     </div>
     <p class="note">Pertes du champ : température des cellules, poussière, câbles et dispersion entre modules.</p>
   </details>`;
+}
+
+const cleStockagePrix = 'dimensionnement-pv-prix-v1';
+const horizonAns = 10;
+const dureeVieBatterie = { plomb: 5, lithium: 10 };
+
+const prixParDefaut = () => ({
+  panneaux: { '100': 1610, '250': 1610, '330': 1610, '450': 1650, '550': 1600 },
+  whPlomb: 600,
+  whLithium: 1300,
+  ajRegulateur: 0,
+  ajOnduleur: 0,
+  ajCables: 0
+});
+
+function chargerPrix() {
+  const base = prixParDefaut();
+  try {
+    const brut = window.localStorage.getItem(cleStockagePrix);
+    if (!brut) return base;
+    const sauvegarde = JSON.parse(brut);
+    const positif = (valeur, defaut) => (Number.isFinite(valeur) && valeur >= 0 ? valeur : defaut);
+    const reglage = (valeur, defaut) => (Number.isFinite(valeur) && valeur >= -90 ? valeur : defaut);
+    const panneaux = sauvegarde.panneaux || {};
+    return {
+      panneaux: Object.fromEntries(Object.keys(base.panneaux).map(id => [id, positif(panneaux[id], base.panneaux[id])])),
+      whPlomb: positif(sauvegarde.whPlomb, base.whPlomb),
+      whLithium: positif(sauvegarde.whLithium, base.whLithium),
+      ajRegulateur: reglage(sauvegarde.ajRegulateur, 0),
+      ajOnduleur: reglage(sauvegarde.ajOnduleur, 0),
+      ajCables: reglage(sauvegarde.ajCables, 0)
+    };
+  } catch (erreur) {
+    return base;
+  }
+}
+
+let reglagesPrix = chargerPrix();
+
+function sauvegarderPrix() {
+  try {
+    window.localStorage.setItem(cleStockagePrix, JSON.stringify(reglagesPrix));
+  } catch (erreur) {}
+}
+
+const tarifRegulateur = {
+  pwm: { 10: 35000, 15: 45000, 20: 57000, 30: 79000, 40: 120000, 50: 170000, 60: 190000, 80: 260000, 100: 340000 },
+  mppt: { 10: 180000, 15: 230000, 20: 300000, 30: 420000, 40: 560000, 50: 720000, 60: 900000, 80: 1500000, 100: 1900000 }
+};
+const facteurVmax = { 100: 1, 150: 1.1, 250: 1.35, 450: 1.8 };
+const tarifOnduleur = { 300: 380000, 500: 520000, 800: 800000, 1000: 1150000, 1500: 1450000, 2000: 1725000, 3000: 2500000, 4000: 3100000, 5000: 3500000, 6000: 3795000, 8000: 5200000, 10000: 6500000 };
+const tarifCable = { 1.5: 1700, 2.5: 2600, 4: 3800, 6: 7130, 10: 10500, 16: 15180, 25: 24150, 35: 34000, 50: 48000, 70: 66000, 95: 90000, 120: 115000 };
+const tarifProtection = [[16, 25000], [32, 38000], [63, 65000], [125, 130000], [250, 260000], [400, 420000]];
+const prixParafoudres = 180000;
+const prixFusibleString = 8000;
+
+const arrondirMille = valeur => Math.round(valeur / 1000) * 1000;
+const formaterM = valeur => (valeur >= 1e6 ? `${formater(valeur / 1e6, 2)} M Ar` : `${formater(Math.round(valeur / 1000))} k Ar`);
+const libelleAutonomie = n => (n === 0.5 ? '½ jour (la nuit)' : `${formater(n, 1)} jour${n > 1 ? 's' : ''}`);
+
+function prixProtection(calibre) {
+  if (calibre === null) return 420000;
+  const ligne = tarifProtection.find(([maximum]) => calibre <= maximum);
+  return ligne ? ligne[1] : 420000;
+}
+
+function chiffrer(r, e) {
+  const p = reglagesPrix;
+  const { champ, batterie, regulateur, onduleur, cables, protections } = r;
+  const lignes = [];
+  const ajouter = (cle, libelle, detail, montant) => lignes.push({ cle, libelle, detail, montant: arrondirMille(montant) });
+
+  const prixWc = p.panneaux[e.moduleId] !== undefined ? p.panneaux[e.moduleId] : p.panneaux['330'];
+  ajouter('panneaux', 'Panneaux', `${champ.nombreModules} × ${formater(champ.module.pc)} Wc`, champ.nombreModules * champ.module.pc * prixWc);
+  ajouter('supports', 'Supports de fixation', `${champ.nombreModules} jeux`, champ.nombreModules * (45000 + 100 * champ.module.pc));
+
+  const prixWh = e.technologie === 'lithium' ? p.whLithium : p.whPlomb;
+  const coutBatteries = arrondirMille(batterie.nombre * e.uniteTension * e.uniteCapacite * prixWh);
+  ajouter('batteries', 'Batteries', `${batterie.nombre} × ${e.uniteTension} V ${e.uniteCapacite} Ah`, coutBatteries);
+
+  const facteur = regulateur.type === 'mppt' ? facteurVmax[champ.vmax] || 1 : 1;
+  ajouter(
+    'regulateur',
+    'Régulateur de charge',
+    `${regulateur.nombre > 1 ? regulateur.nombre + ' × ' : ''}${regulateur.calibre} A ${regulateur.type.toUpperCase()}`,
+    regulateur.nombre * tarifRegulateur[regulateur.type][regulateur.calibre] * facteur * (1 + p.ajRegulateur / 100)
+  );
+
+  if (onduleur) {
+    const base = tarifOnduleur[onduleur.apparente] !== undefined ? tarifOnduleur[onduleur.apparente] : onduleur.apparente * 650;
+    const remise = r.tension === 48 && onduleur.apparente >= 3000 ? 0.88 : 1;
+    ajouter('onduleur', 'Onduleur sinus pur', `${formater(onduleur.apparente)} VA, ${r.tension} V`, base * remise * (1 + p.ajOnduleur / 100));
+  }
+
+  const prixCable = cable => 2 * cable.longueur * (cable.section === null ? tarifCable[120] : tarifCable[cable.section]);
+  const montantCables = prixCable(cables.champ) + prixCable(cables.batterie) + (cables.onduleur ? prixCable(cables.onduleur) : 0);
+  ajouter('cables', 'Câbles', 'cuivre, aller et retour', montantCables * (1 + p.ajCables / 100));
+
+  let montantProtections = prixProtection(protections.disjoncteurChamp) + prixProtection(protections.disjoncteurBatterie) + prixParafoudres;
+  if (onduleur && protections.fusibleBatterie !== null) montantProtections += 0.8 * prixProtection(protections.fusibleBatterie);
+  if (protections.fusibleString) montantProtections += champ.parallele * prixFusibleString;
+  if (protections.disjoncteurAlternatif) montantProtections += prixProtection(protections.disjoncteurAlternatif);
+  ajouter('protections', 'Protections', 'disjoncteurs, fusibles, parafoudres', montantProtections * (1 + p.ajCables / 100));
+
+  const sousTotal = somme(lignes, ligne => ligne.montant);
+  ajouter('divers', 'Petit matériel', 'connecteurs, cosses, boîtier (5 %)', sousTotal * 0.05);
+
+  const total = somme(lignes, ligne => ligne.montant);
+  const remplacements = Math.max(0, Math.ceil(horizonAns / dureeVieBatterie[e.technologie]) - 1);
+  return { lignes, total, coutBatteries, remplacements, totalDixAns: total + coutBatteries * remplacements };
+}
+
+function sectionCout(r) {
+  const cout = chiffrer(r, etat);
+  const lignes = cout.lignes
+    .map(l => `<div><dt>${l.libelle} <span class="unite">${l.detail}</span></dt><dd>${formater(l.montant)} Ar</dd></div>`)
+    .join('');
+  return `<section class="carte"><h2>Coût estimatif du matériel</h2><dl class="valeurs">${lignes}<div class="total"><dt>Total</dt><dd>${formater(cout.total)} Ar</dd></div></dl>
+    <p class="note">Prix indicatifs en Ariary, sans la main d’œuvre, le transport, les taxes ni le câblage 220 V. Ils se règlent dans le mode simple, écran Offres.</p></section>`;
+}
+
+const optionsBatterie = [
+  { technologie: 'plomb', uniteTension: 12, uniteCapacite: 100 },
+  { technologie: 'plomb', uniteTension: 12, uniteCapacite: 150 },
+  { technologie: 'plomb', uniteTension: 12, uniteCapacite: 200 },
+  { technologie: 'lithium', uniteTension: 12, uniteCapacite: 100 },
+  { technologie: 'lithium', uniteTension: 12, uniteCapacite: 200 },
+  { technologie: 'lithium', uniteTension: 48, uniteCapacite: 100 }
+];
+const modulesOffre = ['100', '250', '330', '450', '550'];
+const tensionsOffre = [12, 24, 48];
+const nomsOffres = { eco: 'Économique', equi: 'Équilibrée', dura: 'Durable' };
+const descriptionsOffres = {
+  eco: 'Le prix d’achat le plus bas.',
+  equi: 'Batteries au plomb et régulateur MPPT : bon rendement, prix maîtrisé.',
+  dura: 'Batteries lithium : plus chères à l’achat, elles durent environ deux fois plus longtemps.'
+};
+
+const cleVariante = v => [v.technologie, v.uniteTension, v.uniteCapacite, v.tension, v.moduleId, v.regulateur].join('|');
+
+function evaluerVariante(v) {
+  const technologie = technologies[v.technologie];
+  const e = {
+    ...etat,
+    technologie: v.technologie,
+    profondeurDecharge: technologie.profondeurDecharge,
+    rendementBatterie: technologie.rendement,
+    tension: v.tension,
+    uniteTension: v.uniteTension,
+    uniteCapacite: v.uniteCapacite,
+    moduleId: v.moduleId,
+    regulateur: v.regulateur,
+    vmaxRegulateur: 'auto'
+  };
+  const r = calculerDimensionnement(e);
+  if (r.erreur) return { v, cle: cleVariante(v), erreur: r.erreur };
+  const bloquante = r.alertes.find(a => a.niveau === 'attention');
+  return {
+    v,
+    cle: cleVariante(v),
+    e,
+    r,
+    valide: r.champ.valide && !bloquante,
+    raison: bloquante ? bloquante.texte : '',
+    cout: chiffrer(r, e)
+  };
+}
+
+let cacheOffres = { cle: '', valeur: null };
+
+function calculerOffres() {
+  const cle = JSON.stringify([etat.appareils, etat.irradiation, etat.temperatureMin, etat.latitude, etat.autonomie, etat.simultaneite, etat.rendementOnduleur, etat.coefficientPertes, etat.distanceChamp, etat.distanceBatterie, etat.distanceOnduleur, reglagesPrix]);
+  if (cacheOffres.cle === cle) return cacheOffres.valeur;
+  const toutes = new Map();
+  for (const tension of tensionsOffre) {
+    for (const moduleId of modulesOffre) {
+      for (const regulateur of ['pwm', 'mppt']) {
+        for (const batterie of optionsBatterie) {
+          const v = { ...batterie, tension, moduleId, regulateur };
+          toutes.set(cleVariante(v), evaluerVariante(v));
+        }
+      }
+    }
+  }
+  const liste = [...toutes.values()];
+  const enErreur = liste.find(x => x.erreur);
+  let valeur;
+  if (enErreur) {
+    valeur = { erreur: enErreur.erreur };
+  } else {
+    let reserve = liste.filter(x => x.valide);
+    let relache = false;
+    if (!reserve.length) {
+      reserve = liste.filter(x => x.r.champ.valide);
+      relache = true;
+    }
+    const meilleur = filtre => reserve.filter(filtre).reduce((m, x) => (!m || x.cout.total < m.cout.total ? x : m), null);
+    valeur = {
+      toutes,
+      relache,
+      offres: {
+        eco: meilleur(x => x.v.technologie === 'plomb'),
+        equi: meilleur(x => x.v.technologie === 'plomb' && x.v.regulateur === 'mppt'),
+        dura: meilleur(x => x.v.technologie === 'lithium' && x.v.regulateur === 'mppt')
+      }
+    };
+  }
+  cacheOffres = { cle, valeur };
+  return valeur;
+}
+
+const utilisable = (donnees, x) => Boolean(x && !x.erreur && x.r.champ.valide && (x.valide || donnees.relache));
+
+function varianteChoisie(donnees) {
+  const { toutes, offres } = donnees;
+  if (etat.offre === 'perso' && etat.config) {
+    const x = toutes.get(cleVariante(etat.config));
+    if (utilisable(donnees, x)) return x;
+  }
+  return offres[etat.offre] || offres.equi || offres.eco || offres.dura || null;
+}
+
+function appliquerConfiguration(x) {
+  const technologie = technologies[x.v.technologie];
+  etat.technologie = x.v.technologie;
+  etat.profondeurDecharge = technologie.profondeurDecharge;
+  etat.rendementBatterie = technologie.rendement;
+  etat.tension = x.v.tension;
+  etat.uniteTension = x.v.uniteTension;
+  etat.uniteCapacite = x.v.uniteCapacite;
+  etat.moduleId = x.v.moduleId;
+  etat.regulateur = x.v.regulateur;
+  etat.vmaxRegulateur = 'auto';
+  sauvegarder();
+}
+
+function preparerConfiguration() {
+  if (etat.mode === 'avance') return null;
+  const donnees = calculerOffres();
+  if (donnees.erreur) return null;
+  const choisie = varianteChoisie(donnees);
+  if (choisie) appliquerConfiguration(choisie);
+  return choisie;
+}
+
+function raisonCourte(x) {
+  if (!x) return 'Non disponible';
+  const texte = x.raison || '';
+  if (texte.includes('régulateur PWM')) return 'PWM impossible avec ce module à cette tension';
+  if (texte.includes('Aucune association')) return 'Association des modules impossible';
+  if (texte.includes('ne conviennent pas')) return 'Batterie incompatible avec cette tension';
+  if (texte.includes('Une tension de')) return 'Tension déconseillée pour cette puissance';
+  if (texte.includes('branches de batteries')) return 'Trop de batteries en parallèle';
+  if (texte.includes('Courant de décharge')) return 'Courant de décharge trop élevé';
+  if (texte.includes('section supérieure')) return 'Câble trop gros';
+  return 'Montage impossible avec ce choix';
+}
+
+function ligneChoix(donnees, choisie, x, nom, detail) {
+  if (!utilisable(donnees, x)) {
+    return `<button type="button" class="choix" disabled><span class="choix-texte"><span class="choix-nom">${echapper(nom)}</span><span class="choix-detail">${echapper(raisonCourte(x))}</span></span></button>`;
+  }
+  const ecart = x.cout.total - choisie.cout.total;
+  const actif = x.cle === choisie.cle;
+  const delta = actif ? 'Choix actuel' : ecart === 0 ? 'Même prix' : `${ecart > 0 ? '+' : '−'} ${formater(Math.abs(ecart))} Ar`;
+  const classe = actif || ecart === 0 ? '' : ecart > 0 ? ' plus' : ' moins';
+  return `<button type="button" class="choix" data-action="appliquer-choix" data-cle="${echapper(x.cle)}" aria-pressed="${actif}"><span class="choix-texte"><span class="choix-nom">${echapper(nom)}</span><span class="choix-detail">${echapper(detail(x))}</span></span><span class="choix-prix">${formaterM(x.cout.total)}<span class="choix-delta${classe}">${delta}</span></span></button>`;
+}
+
+function sectionsComparaison(donnees, choisie) {
+  const lire = modif => donnees.toutes.get(cleVariante({ ...choisie.v, ...modif }));
+  const ligne = (x, nom, detail) => ligneChoix(donnees, choisie, x, nom, detail);
+
+  const panneaux = modulesOffre
+    .map(id => ligne(lire({ moduleId: id }), modulesPV.find(m => m.id === id).nom, x => `${x.r.champ.nombreModules} × ${formater(x.r.champ.module.pc)} Wc, soit ${formater(x.r.champ.puissanceInstallee)} Wc installés`))
+    .join('');
+
+  const batteries = optionsBatterie
+    .map(b => ligne(lire(b), `${technologies[b.technologie].nom} · ${b.uniteTension} V ${b.uniteCapacite} Ah`, x => `${x.r.batterie.nombre} batteries, ${formater(x.r.batterie.energieInstalleeKWh, 1)} kWh, durée de vie estimée ${dureeVieBatterie[b.technologie]} ans`))
+    .join('');
+
+  const regulateurs = [['mppt', 'MPPT · meilleur rendement'], ['pwm', 'PWM · plus simple et moins cher']]
+    .map(([type, nom]) => ligne(lire({ regulateur: type }), nom, x => `${x.r.regulateur.nombre > 1 ? x.r.regulateur.nombre + ' × ' : ''}${x.r.regulateur.calibre} A${type === 'mppt' ? ', ' + x.r.champ.vmax + ' V max' : ''}`))
+    .join('');
+
+  const meilleurPourTension = tension => {
+    const candidats = optionsBatterie.filter(b => b.technologie === choisie.v.technologie).map(b => lire({ ...b, tension }));
+    const bons = candidats.filter(x => utilisable(donnees, x));
+    return bons.length ? bons.reduce((m, x) => (x.cout.total < m.cout.total ? x : m)) : candidats[0];
+  };
+  const tensions = tensionsOffre
+    .map(tension => ligne(meilleurPourTension(tension), `Système en ${tension} V`, x => `${x.r.batterie.nombre} batteries ${x.e.uniteTension} V ${x.e.uniteCapacite} Ah, régulateur ${x.r.regulateur.calibre} A${x.r.onduleur ? ', onduleur ' + formater(x.r.onduleur.apparente) + ' VA' : ''}`))
+    .join('');
+
+  const carte = (titre, contenu) => `<section class="carte"><h2>${titre}</h2>${contenu}</section>`;
+  return carte('Type de panneau', panneaux) + carte('Type de batterie', batteries) + carte('Type de régulateur', regulateurs) + carte('Tension du système', tensions);
+}
+
+function sectionReglagesPrix() {
+  const p = reglagesPrix;
+  const champPrix = (chemin, libelle, valeur, minimum = 0) =>
+    `<div class="champ"><label for="prix-${chemin}">${libelle}</label><input id="prix-${chemin}" type="number" inputmode="decimal" min="${minimum}" step="any" value="${valeur}" data-prix="${chemin}"></div>`;
+  const modulesAffiches = ['100', '250', '330', '450', '550'];
+  return `<details class="carte" id="details-prix"${prixOuverts ? ' open' : ''}>
+    <summary>Ajuster les prix</summary>
+    <div class="grille">
+      ${modulesAffiches.map(id => champPrix('panneaux.' + id, `Panneau ${id} Wc <span class="unite">Ar/Wc</span>`, p.panneaux[id])).join('')}
+      ${champPrix('whPlomb', 'Batterie plomb <span class="unite">Ar/Wh</span>', p.whPlomb)}
+      ${champPrix('whLithium', 'Batterie lithium <span class="unite">Ar/Wh</span>', p.whLithium)}
+    </div>
+    <div class="grille3" style="margin-top:14px">
+      ${champPrix('ajRegulateur', 'Régulateurs <span class="unite">%</span>', p.ajRegulateur, -90)}
+      ${champPrix('ajOnduleur', 'Onduleurs <span class="unite">%</span>', p.ajOnduleur, -90)}
+      ${champPrix('ajCables', 'Câbles, protections <span class="unite">%</span>', p.ajCables, -90)}
+    </div>
+    <p class="note">Les pourcentages augmentent (+) ou réduisent (−) tous les prix de la famille. Les prix sont gardés sur cet appareil.</p>
+    <button type="button" class="bouton secondaire" data-action="prix-defaut" style="width:100%;margin-top:12px">Remettre les prix d’origine</button>
+  </details>`;
+}
+
+function vueRegion() {
+  const options =
+    villes.map(v => `<option value="${v.nom}"${etat.ville === v.nom ? ' selected' : ''}>${v.nom}</option>`).join('') +
+    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>`;
+  return `${bandeau()}<section class="carte">
+    <h2>Où sera installé le système ?</h2>
+    <div class="champ"><label for="ville">Région</label><select id="ville" data-selection="ville">${options}</select></div>
+    <dl class="valeurs" style="margin-top:14px">
+      ${ligneValeur('Ensoleillement du mois le plus défavorable', `${formater(etat.irradiation, 1)} kWh/m²/j`)}
+      ${ligneValeur('Température minimale', `${formater(etat.temperatureMin)} °C`)}
+    </dl>
+    <p class="note">Le dimensionnement se base sur le mois le moins ensoleillé : l’installation fonctionne alors toute l’année.</p>
+  </section>
+  <details class="carte"${etat.ville === 'autre' ? ' open' : ''}>
+    <summary>Valeurs du site et distances (facultatif)</summary>
+    <div class="grille">
+      <div class="champ"><label for="irradiation">Ensoleillement <span class="unite">kWh/m²/jour</span></label>${entree('irradiation', 'irradiation', { pas: 0.1 })}</div>
+      <div class="champ"><label for="temperatureMin">Température minimale <span class="unite">°C</span></label>${entree('temperatureMin', 'temperatureMin', { pas: 1 })}</div>
+    </div>
+    <div class="champ" style="margin-top:14px"><label for="latitude">Latitude <span class="unite">° (– au sud)</span></label><input id="latitude" type="number" inputmode="decimal" step="0.1" value="${etat.latitude}" data-cle="latitude" data-echelle="1"></div>
+    <div class="grille3" style="margin-top:14px">
+      <div class="champ"><label for="distanceChamp">Panneaux → régulateur <span class="unite">m</span></label>${entree('distanceChamp', 'distanceChamp', { pas: 0.5 })}</div>
+      <div class="champ"><label for="distanceBatterie">Régulateur → batterie <span class="unite">m</span></label>${entree('distanceBatterie', 'distanceBatterie', { pas: 0.5 })}</div>
+      <div class="champ"><label for="distanceOnduleur">Batterie → onduleur <span class="unite">m</span></label>${entree('distanceOnduleur', 'distanceOnduleur', { pas: 0.5 })}</div>
+    </div>
+    <p class="note">Les distances servent à choisir la section des câbles, donc leur prix.</p>
+  </details>
+  <p class="message info">Valeurs indicatives et prudentes pour les villes de Madagascar. Pour ton site exact, relève l’ensoleillement sur PVGIS ou NASA POWER.</p>`;
+}
+
+const ligneAppareilSimple = (a, i) => `<div class="appareil">
+  <div class="appareil-tete">
+    <input type="text" value="${echapper(a.nom)}" data-ligne="${i}" data-propriete="nom" aria-label="Nom de l’appareil" placeholder="Nom de l’appareil">
+    <button type="button" class="supprimer" data-action="supprimer" data-ligne="${i}" aria-label="Supprimer ${echapper(a.nom)}">×</button>
+  </div>
+  <div class="appareil-champs trois">
+    <div><label for="p${i}">Watts</label><input id="p${i}" type="number" inputmode="decimal" min="0" step="any" value="${a.puissance}" data-ligne="${i}" data-propriete="puissance"></div>
+    <div><label for="q${i}">Quantité</label><input id="q${i}" type="number" inputmode="numeric" min="0" step="1" value="${a.quantite}" data-ligne="${i}" data-propriete="quantite"></div>
+    <div><label for="h${i}">Heures/jour</label><input id="h${i}" type="number" inputmode="decimal" min="0" max="24" step="any" value="${a.heures}" data-ligne="${i}" data-propriete="heures"></div>
+  </div>
+  <div class="appareil-pied" style="justify-content:flex-end"><span class="energie-ligne" id="energie-${i}"></span></div>
+</div>`;
+
+function vueAppareils() {
+  const puces =
+    appareilsTypes.map((a, i) => `<button type="button" class="puce" data-action="ajouter-type" data-index="${i}">${a.nom}</button>`).join('') +
+    `<button type="button" class="puce puce-vide" data-action="ajouter-vide">+ Autre appareil</button>`;
+  const lignes = etat.appareils.length
+    ? etat.appareils.map(ligneAppareilSimple).join('')
+    : `<p class="note" style="margin:0">Aucun appareil. Touche un appareil ci-dessus pour l’ajouter.</p>`;
+  return `<section class="carte">
+    <h2>Quels appareils vas-tu alimenter ?</h2>
+    <div class="puces">${puces}</div>
+    <p class="note">Touche un appareil pour l’ajouter, puis indique le nombre et les heures d’utilisation par jour. Réfrigérateur et congélateur : 8 h/jour correspond à un compresseur qui tourne environ un tiers du temps.</p>
+  </section>
+  <section class="carte">
+    <div class="totaux">
+      <div><span class="valeur" id="total-energie"></span><span class="legende">Wh consommés par jour</span></div>
+      <div><span class="valeur" id="total-puissance"></span><span class="legende">W installés</span></div>
+    </div>
+    <div id="liste-appareils">${lignes}</div>
+  </section>
+  <p class="message info">La liste ci-dessus est un exemple. Modifie-la ou supprime-la selon ton installation.</p>`;
+}
+
+function vueAutonomie() {
+  const choix = [[0.5, 'La nuit'], [1, '1 jour'], [2, '2 jours'], [3, '3 jours']];
+  if (!choix.some(([valeur]) => valeur === etat.autonomie)) choix.push([etat.autonomie, `${formater(etat.autonomie, 1)} j`]);
+  return `<section class="carte">
+    <h2>Combien de temps la batterie doit-elle tenir sans soleil ?</h2>
+    <div class="champ">${segments('autonomie', choix)}</div>
+    <p class="note"><strong>La nuit</strong> : les appareils fonctionnent le soir et la nuit, puis le soleil recharge. <strong>2 ou 3 jours</strong> : le système tient aussi pendant plusieurs jours de pluie. Plus la durée est longue, plus il faut de batteries, donc plus le prix monte.</p>
+  </section>
+  <p class="message info">À l’étape suivante, tu verras trois offres complètes avec leur prix, puis tu pourras comparer panneau par panneau, batterie par batterie, régulateur et tension.</p>`;
+}
+
+function vueOffres() {
+  const donnees = calculerOffres();
+  if (donnees.erreur) {
+    const texte = donnees.erreur.replace('à l’étape Charges', 'à l’étape Appareils').replace('à l’étape Site', 'à l’étape Région');
+    return `<section class="carte"><h2>Offres</h2><p class="message" style="margin:0">${echapper(texte)}</p></section>`;
+  }
+  const choisie = varianteChoisie(donnees);
+  if (!choisie) {
+    return `<section class="carte"><h2>Offres</h2><p class="message" style="margin:0">Aucune combinaison standard ne convient à cette puissance. Passe en mode avancé pour dimensionner à la main.</p></section>`;
+  }
+
+  const groupes = [];
+  ['eco', 'equi', 'dura'].forEach(id => {
+    const x = donnees.offres[id];
+    if (!x) return;
+    const existant = groupes.find(g => g.x.cle === x.cle);
+    if (existant) existant.ids.push(id);
+    else groupes.push({ ids: [id], x });
+  });
+  const minimumDixAns = Math.min(...groupes.map(g => g.x.cout.totalDixAns));
+
+  const cartes = groupes
+    .map(g => {
+      const { x } = g;
+      const r = x.r;
+      const actif = x.cle === choisie.cle;
+      const titre = g.ids.map(id => nomsOffres[id]).join(' · ');
+      const description = descriptionsOffres[g.ids[g.ids.length - 1]];
+      const badge = groupes.length > 1 && x.cout.totalDixAns === minimumDixAns ? '<span class="badge">Le moins cher sur 10 ans</span>' : '';
+      const dixAns = x.cout.remplacements > 0
+        ? `≈ ${formaterM(x.cout.totalDixAns)} sur ${horizonAns} ans, batteries remplacées comprises`
+        : `≈ ${formaterM(x.cout.totalDixAns)} sur ${horizonAns} ans, sans remplacement de batterie`;
+      return `<article class="carte offre${actif ? ' choisie' : ''}">
+        <div class="offre-tete"><h2 class="offre-titre">${titre}</h2>${badge}</div>
+        <p class="offre-prix">${formaterM(x.cout.total)}</p>
+        <p class="offre-sous">${dixAns}</p>
+        <p class="note" style="margin:0 0 10px">${description}</p>
+        <dl class="valeurs">
+          ${ligneValeur('Panneaux', `${r.champ.nombreModules} × ${formater(r.champ.module.pc)} Wc`)}
+          ${ligneValeur('Batteries', `${r.batterie.nombre} × ${x.e.uniteTension} V ${x.e.uniteCapacite} Ah`)}
+          ${ligneValeur('Technologie', technologies[x.e.technologie].nom)}
+          ${ligneValeur('Régulateur', `${r.regulateur.nombre > 1 ? r.regulateur.nombre + ' × ' : ''}${r.regulateur.calibre} A ${r.regulateur.type.toUpperCase()}`)}
+          ${ligneValeur('Onduleur', r.onduleur ? `${formater(r.onduleur.apparente)} VA` : 'Aucun')}
+          ${ligneValeur('Tension', `${r.tension} V`)}
+        </dl>
+        <button type="button" class="bouton${actif ? '' : ' secondaire'}" data-action="choisir-offre" data-id="${g.ids[0]}" aria-pressed="${actif}">${actif ? 'Offre choisie' : 'Choisir cette offre'}</button>
+      </article>`;
+    })
+    .join('');
+
+  const nomChoisie = etat.offre === 'perso' && etat.config && choisie.cle === cleVariante(etat.config)
+    ? 'Ma configuration'
+    : groupes.filter(g => g.x.cle === choisie.cle).map(g => g.ids.map(id => nomsOffres[id]).join(' · ')).join('') || 'Ma configuration';
+  const lignesPrix = choisie.cout.lignes
+    .map(l => `<div><dt>${l.libelle} <span class="unite">${l.detail}</span></dt><dd>${formater(l.montant)} Ar</dd></div>`)
+    .join('');
+  const alertes = donnees.relache && choisie.r.alertes.length
+    ? choisie.r.alertes.map(a => `<p class="message${a.niveau === 'info' ? ' info' : ''}">${echapper(a.texte)}</p>`).join('')
+    : '';
+
+  const actions = `<div class="actions">
+    <button type="button" class="bouton" data-action="detail-technique">Voir le détail technique</button>
+    <button type="button" class="bouton secondaire" data-action="copier">Copier le résumé</button>
+    <button type="button" class="bouton secondaire" data-action="recommencer" id="bouton-recommencer">${confirmationEffacement ? 'Confirmer l’effacement' : 'Tout recommencer'}</button>
+    <textarea id="zone-copie" readonly hidden aria-label="Résumé du dimensionnement"></textarea>
+  </div>`;
+
+  return `${alertes}${cartes}
+  <section class="carte">
+    <h2>Détail du prix · ${nomChoisie}</h2>
+    <dl class="valeurs">${lignesPrix}<div class="total"><dt>Total</dt><dd>${formater(choisie.cout.total)} Ar</dd></div></dl>
+    <p class="note">Prix indicatifs d’octobre 2026, sans la main d’œuvre, le transport, les taxes ni le câblage 220 V de la maison. Ils varient selon la ville et le fournisseur.</p>
+  </section>
+  <h3>Comparer les choix</h3>
+  <p class="note" style="margin-top:0">Chaque ligne donne le prix total si tu changes seulement ce choix, avec l’écart par rapport à ton offre. Touche une ligne pour l’appliquer.</p>
+  ${sectionsComparaison(donnees, choisie)}
+  ${sectionReglagesPrix()}
+  <details class="carte">
+    <summary>D’où viennent les prix ?</summary>
+    <p class="note" style="margin-top:0">Relevés d’octobre 2026 chez Bricodis Madagascar : panneaux, batteries gel et plomb, onduleurs sinus pur, régulateurs PWM et câbles solaires. Estimations faute de prix publics : batteries lithium, régulateurs MPPT, supports de fixation et protections.</p>
+    <p class="note">Durée de vie retenue pour comparer sur ${horizonAns} ans : batteries au plomb ${dureeVieBatterie.plomb} ans, lithium ${dureeVieBatterie.lithium} ans. Les panneaux, l’onduleur et le régulateur ne sont pas remplacés dans ce calcul.</p>
+  </details>
+  ${sectionEnregistrement()}${actions}`;
+}
+
+function vueDetailTechnique() {
+  preparerConfiguration();
+  return `<section class="carte"><button type="button" class="lien" data-action="retour-offres" style="padding-left:0">← Retour aux offres</button><p class="note" style="margin-top:4px">Détail technique de l’offre choisie.</p></section>${vueResultats()}`;
+}
+
+const logoMarque = '<svg class="logo" aria-hidden="true" focusable="false"><use href="#logo-dtp"></use></svg>';
+
+function bandeau() {
+  return `<section class="bandeau">${logoMarque}<p><strong>Bienvenue sur DimTechPv</strong>4 étapes simples, puis 3 offres chiffrées en Ariary.</p></section>`;
+}
+
+function heroConnexion() {
+  return `<section class="hero">${logoMarque}
+    <p class="hero-nom">DimTechPv · DTP</p>
+    <h2>Ton installation solaire, calculée et chiffrée</h2>
+    <p>Panneaux, batteries, onduleur, régulateur, câbles et protections, avec le prix en Ariary.</p>
+    <div class="puces-hero"><span>Panneaux</span><span>Batteries</span><span>Onduleur</span><span>Régulateur</span><span>Prix</span></div>
+  </section>`;
 }
 
 const ligneValeur = (etiquette, valeur) => `<div><dt>${etiquette}</dt><dd>${valeur}</dd></div>`;
@@ -901,15 +1444,17 @@ function vueResultats() {
     <textarea id="zone-copie" readonly hidden aria-label="Résumé du dimensionnement"></textarea>
   </div>`;
 
-  return `${tuiles}<h3>Alertes</h3>${alertes}${sectionBesoins}${sectionPanneaux}${sectionBatteries}${sectionOnduleur}${sectionRegulateur}${sectionCables}${sectionProtections}${formules}${sectionEnregistrement()}${actions}`;
+  return `${tuiles}<h3>Alertes</h3>${alertes}${sectionBesoins}${sectionPanneaux}${sectionBatteries}${sectionOnduleur}${sectionRegulateur}${sectionCables}${sectionProtections}${sectionCout(r)}${formules}${sectionEnregistrement()}${actions}`;
 }
 
 function texteResume() {
+  preparerConfiguration();
   const r = calculerDimensionnement(etat);
   if (r.erreur) return r.erreur;
   const { besoins, onduleur, batterie, champ, regulateur, cables, protections } = r;
+  const cout = chiffrer(r, etat);
   const lignes = [
-    'DIMENSIONNEMENT D’UN SYSTÈME PHOTOVOLTAÏQUE AUTONOME',
+    'DIMTECHPV (DTP) · DIMENSIONNEMENT D’UN SYSTÈME PHOTOVOLTAÏQUE AUTONOME',
     '',
     `Lieu : ${etat.ville === 'autre' ? 'site personnalisé' : etat.ville} · irradiation du mois défavorable : ${formater(etat.irradiation, 1)} kWh/m²/j`,
     `Énergie à fournir : ${formater(besoins.energieBesoin)} Wh/j (CA ${formater(besoins.energieCA)} Wh, CC ${formater(besoins.energieCC)} Wh)`,
@@ -917,7 +1462,7 @@ function texteResume() {
     '',
     `Panneaux : ${champ.nombreModules} × ${formater(champ.module.pc)} Wc = ${formater(champ.puissanceInstallee)} Wc (${champ.serie} série × ${champ.parallele} parallèle)`,
     `Inclinaison ${champ.inclinaison}°, orientation ${champ.orientation}`,
-    `Batteries : ${batterie.nombre} × ${etat.uniteTension} V ${etat.uniteCapacite} Ah (${technologies[etat.technologie].nom}), ${batterie.serie} série × ${batterie.parallele} parallèle, ${formater(batterie.energieInstalleeKWh, 1)} kWh, autonomie ${etat.autonomie} j`,
+    `Batteries : ${batterie.nombre} × ${etat.uniteTension} V ${etat.uniteCapacite} Ah (${technologies[etat.technologie].nom}), ${batterie.serie} série × ${batterie.parallele} parallèle, ${formater(batterie.energieInstalleeKWh, 1)} kWh, autonomie ${libelleAutonomie(etat.autonomie)}`,
     onduleur ? `Onduleur : ${formater(onduleur.apparente)} VA (${formater(onduleur.active)} W), entrée ${r.tension} V` : 'Onduleur : aucun',
     `Régulateur : ${regulateur.nombre > 1 ? regulateur.nombre + ' × ' : ''}${regulateur.calibre} A ${regulateur.type.toUpperCase()}${regulateur.type === 'mppt' ? `, ${champ.vmax} V max` : ''}`,
     '',
@@ -927,7 +1472,10 @@ function texteResume() {
     `Disjoncteur champ : ${protections.disjoncteurChamp} A, ${protections.tensionChamp} V min`,
     protections.fusibleString ? `Fusible par string : ${protections.fusibleString} A` : null,
     protections.fusibleBatterie ? `Fusible batterie → onduleur : ${protections.fusibleBatterie} A` : null,
-    protections.disjoncteurAlternatif ? `Disjoncteur alternatif : ${protections.disjoncteurAlternatif} A` : null
+    protections.disjoncteurAlternatif ? `Disjoncteur alternatif : ${protections.disjoncteurAlternatif} A` : null,
+    '',
+    `Coût estimatif du matériel : ${formater(cout.total)} Ar (sans main d’œuvre, transport ni taxes)`,
+    ...cout.lignes.map(l => `  ${l.libelle} (${l.detail}) : ${formater(l.montant)} Ar`)
   ];
   return lignes.filter(ligne => ligne !== null).join('\n');
 }
@@ -953,7 +1501,7 @@ function mettreAJourTotaux() {
 }
 
 function afficherEtapes() {
-  document.getElementById('etapes').innerHTML = nomsEtapes
+  document.getElementById('etapes').innerHTML = nomsEtapes()
     .map((nom, i) => `<button type="button" data-action="aller" data-etape="${i}" class="${i < etat.etape ? 'faite' : ''}"${i === etat.etape ? ' aria-current="step"' : ''}><span class="numero">${i + 1}</span>${nom}</button>`)
     .join('');
 }
@@ -962,6 +1510,7 @@ function afficherEcranSpecial(contenu, remonter) {
   document.getElementById('vue').innerHTML = contenu;
   document.getElementById('etapes').hidden = true;
   document.querySelector('.barre').hidden = true;
+  document.getElementById('bascule-mode').hidden = true;
   if (remonter) window.scrollTo({ top: 0 });
 }
 
@@ -972,21 +1521,28 @@ function afficher(remonter = false) {
   if (vueActuelle === 'historique') return afficherEcranSpecial(vueHistorique(), remonter);
   document.getElementById('etapes').hidden = false;
   document.querySelector('.barre').hidden = false;
-  const vues = [vueSite, vueCharges, vueSysteme, vueResultats];
-  document.getElementById('vue').innerHTML = vues[etat.etape]();
+  const simple = etat.mode !== 'avance';
+  const bascule = document.getElementById('bascule-mode');
+  bascule.hidden = false;
+  bascule.textContent = simple ? 'Mode avancé' : 'Mode simple';
+  const vues = simple ? [vueRegion, vueAppareils, vueAutonomie, vueOffres] : [vueSite, vueCharges, vueSysteme, vueResultats];
+  const enDetail = simple && etat.etape === 3 && detailTechnique;
+  document.getElementById('vue').innerHTML = enDetail ? vueDetailTechnique() : vues[etat.etape]();
   afficherEtapes();
   const precedent = document.getElementById('precedent');
   const suivant = document.getElementById('suivant');
+  const derniere = etat.etape === nomsEtapes().length - 1;
   precedent.hidden = etat.etape === 0;
-  precedent.textContent = etat.etape === nomsEtapes.length - 1 ? 'Modifier les données' : 'Précédent';
-  suivant.hidden = etat.etape === nomsEtapes.length - 1;
-  suivant.textContent = etat.etape === nomsEtapes.length - 2 ? 'Voir les résultats' : 'Suivant';
+  precedent.textContent = enDetail ? 'Retour aux offres' : derniere ? (simple ? 'Modifier mes choix' : 'Modifier les données') : 'Précédent';
+  suivant.hidden = derniere;
+  suivant.textContent = etat.etape === nomsEtapes().length - 2 ? (simple ? 'Voir les offres' : 'Voir les résultats') : 'Suivant';
   mettreAJourTotaux();
   if (remonter) window.scrollTo({ top: 0 });
 }
 
 function aller(etape) {
-  etat.etape = Math.max(0, Math.min(nomsEtapes.length - 1, etape));
+  etat.etape = Math.max(0, Math.min(nomsEtapes().length - 1, etape));
+  detailTechnique = false;
   confirmationEffacement = false;
   sauvegarder();
   afficher(true);
@@ -1052,7 +1608,7 @@ function vueConnexion() {
     ? `<div class="champ"><label for="auth-confirmation">Confirme le mot de passe</label><input id="auth-confirmation" type="password" autocomplete="new-password" required></div>`
     : '';
   const oubli = inscription ? '' : `<button type="button" class="lien" data-action="mdp-oublie">Mot de passe oublié ?</button>`;
-  return `<section class="carte connexion">
+  return `${heroConnexion()}<section class="carte connexion">
     <h2>${inscription ? 'Créer un compte' : 'Connexion'}</h2>
     <div class="segments" role="group">
       <button type="button" data-action="mode-auth" data-valeur="connexion" aria-pressed="${!inscription}">Se connecter</button>
@@ -1112,7 +1668,7 @@ function carteEtude(etude) {
   return `<div class="etude">
     <p class="etude-nom">${echapper(etude.nom || 'Étude sans nom')}</p>
     <p class="etude-date">${echapper(date)}</p>
-    <p class="etude-resume">${formater(resume.puissanceCrete || 0)} Wc · ${resume.batteries || 0} × ${echapper(resume.uniteBatterie || '')} · ${formater(resume.onduleurVA || 0)} VA · ${echapper(resume.regulateur || '')}</p>
+    <p class="etude-resume">${formater(resume.puissanceCrete || 0)} Wc · ${resume.batteries || 0} × ${echapper(resume.uniteBatterie || '')} · ${formater(resume.onduleurVA || 0)} VA · ${echapper(resume.regulateur || '')}${resume.prix ? ' · ' + formaterM(resume.prix) : ''}</p>
     <div class="etude-actions">
       <button type="button" class="bouton" data-action="ouvrir-etude" data-id="${identifiant}">Ouvrir</button>
       <button type="button" class="bouton secondaire" data-action="supprimer-etude" data-id="${identifiant}">${confirmation ? 'Confirmer' : 'Supprimer'}</button>
@@ -1158,6 +1714,7 @@ function sectionEnregistrement() {
 
 async function enregistrerEtude() {
   if (enregistrementEnCours) return;
+  preparerConfiguration();
   const r = calculerDimensionnement(etat);
   if (r.erreur) {
     notifier(r.erreur);
@@ -1177,7 +1734,8 @@ async function enregistrerEtude() {
       onduleurVA: r.onduleur ? r.onduleur.apparente : 0,
       regulateur,
       tension: r.tension,
-      energieJour: Math.round(r.besoins.energieBesoin)
+      energieJour: Math.round(r.besoins.energieBesoin),
+      prix: chiffrer(r, etat).total
     }
   };
   enregistrementEnCours = true;
@@ -1274,12 +1832,29 @@ vue.addEventListener('input', evenement => {
     mettreAJourTotaux();
   } else if (cible.dataset.module !== undefined) {
     etat.moduleSurMesure[cible.dataset.module] = cible.value === '' ? 0 : Number(cible.value);
+  } else if (cible.dataset.prix !== undefined) {
+    const valeur = cible.value === '' ? 0 : Number(cible.value);
+    if (Number.isFinite(valeur)) {
+      const [famille, id] = cible.dataset.prix.split('.');
+      if (id) reglagesPrix[famille][id] = Math.max(0, valeur);
+      else reglagesPrix[famille] = famille.startsWith('aj') ? Math.max(-90, valeur) : Math.max(0, valeur);
+      sauvegarderPrix();
+    }
+    return;
   }
   sauvegarder();
 });
 
+vue.addEventListener('toggle', evenement => {
+  if (evenement.target.id === 'details-prix') prixOuverts = evenement.target.open;
+}, true);
+
 vue.addEventListener('change', evenement => {
   const cible = evenement.target;
+  if (cible.dataset.prix !== undefined) {
+    afficher();
+    return;
+  }
   const selection = cible.dataset.selection;
   if (!selection) return;
   if (selection === 'ville') {
@@ -1324,9 +1899,48 @@ document.addEventListener('click', evenement => {
     sauvegarder();
     afficher();
   } else if (action === 'autonomie') {
-    etat.autonomie = Math.max(1, Math.min(7, etat.autonomie + Number(bouton.dataset.delta)));
-    document.getElementById('autonomie-valeur').textContent = `${etat.autonomie} jour${etat.autonomie > 1 ? 's' : ''}`;
+    const niveaux = [0.5, 1, 2, 3, 4, 5, 6, 7];
+    let rang = niveaux.findIndex(n => n >= etat.autonomie - 1e-9);
+    if (rang < 0) rang = niveaux.length - 1;
+    etat.autonomie = niveaux[Math.max(0, Math.min(niveaux.length - 1, rang + Number(bouton.dataset.delta)))];
+    document.getElementById('autonomie-valeur').textContent = libelleAutonomie(etat.autonomie);
     sauvegarder();
+  } else if (action === 'mode') {
+    if (etat.mode !== 'avance') {
+      preparerConfiguration();
+      etat.mode = 'avance';
+    } else {
+      etat.mode = 'simple';
+    }
+    detailTechnique = false;
+    confirmationEffacement = false;
+    sauvegarder();
+    afficher(true);
+  } else if (action === 'choisir-offre') {
+    etat.offre = bouton.dataset.id;
+    etat.config = null;
+    sauvegarder();
+    afficher();
+  } else if (action === 'appliquer-choix') {
+    const donnees = calculerOffres();
+    const choix = donnees.toutes && donnees.toutes.get(bouton.dataset.cle);
+    if (choix) {
+      etat.offre = 'perso';
+      etat.config = { ...choix.v };
+      sauvegarder();
+      afficher();
+    }
+  } else if (action === 'detail-technique') {
+    detailTechnique = true;
+    afficher(true);
+  } else if (action === 'retour-offres') {
+    detailTechnique = false;
+    afficher(true);
+  } else if (action === 'prix-defaut') {
+    reglagesPrix = prixParDefaut();
+    sauvegarderPrix();
+    afficher();
+    notifier('Prix d’origine rétablis');
   } else if (action === 'copier') {
     copierResume();
   } else if (action === 'mode-auth') {
@@ -1393,7 +2007,10 @@ document.addEventListener('click', evenement => {
       }, 4000);
     } else {
       confirmationEffacement = false;
+      const modeActuel = etat.mode;
       etat = etatParDefaut();
+      etat.mode = modeActuel;
+      detailTechnique = false;
       sauvegarder();
       afficher(true);
       notifier('Données réinitialisées');
@@ -1401,7 +2018,14 @@ document.addEventListener('click', evenement => {
   }
 });
 
-document.getElementById('precedent').addEventListener('click', () => aller(etat.etape - 1));
+document.getElementById('precedent').addEventListener('click', () => {
+  if (detailTechnique) {
+    detailTechnique = false;
+    afficher(true);
+    return;
+  }
+  aller(etat.etape - 1);
+});
 document.getElementById('suivant').addEventListener('click', () => aller(etat.etape + 1));
 
 if (compte.mode === 'attente') {
