@@ -284,6 +284,7 @@ textarea {
 .etude-resume { margin: 8px 0 0; font: 500 13px var(--chiffres); overflow-wrap: anywhere; }
 .etude-actions { display: flex; gap: 8px; margin-top: 10px; }
 .etude-actions .bouton { min-height: 40px; font-size: 14px; }
+.localisation .bouton:disabled { opacity: 0.6; cursor: wait; }
 .titre-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .marque { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .logo { flex: none; display: block; width: 38px; height: 38px; }
@@ -410,6 +411,7 @@ const etatParDefaut = () => ({
   offre: 'equi',
   config: null,
   ville: 'Antananarivo',
+  lieu: null,
   irradiation: 4.5,
   temperatureMin: 5,
   latitude: -18.9,
@@ -478,6 +480,7 @@ let erreurHistorique = '';
 let etudeASupprimer = null;
 let enregistrementEnCours = false;
 let detailTechnique = false;
+let positionEtat = { phase: 'repos', message: '' };
 let prixOuverts = false;
 
 const formater = (valeur, decimales = 0) =>
@@ -705,11 +708,114 @@ const segments = (cle, options) =>
     .map(([valeur, libelle]) => `<button type="button" data-action="choisir" data-cle="${cle}" data-valeur="${valeur}" aria-pressed="${String(etat[cle]) === String(valeur)}">${libelle}</button>`)
     .join('')}</div>`;
 
+const nomLieu = () => {
+  if (etat.ville === 'position') return (etat.lieu && etat.lieu.nom) || 'ma position';
+  return etat.ville === 'autre' ? 'site personnalisé' : etat.ville;
+};
+
+const optionPosition = () => (etat.ville === 'position' ? `<option value="position" selected>${echapper((etat.lieu && etat.lieu.nom) || 'Ma position')}</option>` : '');
+
+const avecDelai = (url, millisecondes) => {
+  const controle = new AbortController();
+  const minuteur = setTimeout(() => controle.abort(), millisecondes);
+  return fetch(url, { signal: controle.signal }).finally(() => clearTimeout(minuteur));
+};
+
+const moisClimat = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+async function lireClimat(latitude, longitude) {
+  const url = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN,T2M_MIN&community=RE&longitude=${longitude.toFixed(2)}&latitude=${latitude.toFixed(2)}&format=JSON`;
+  const reponse = await avecDelai(url, 25000);
+  if (!reponse.ok) throw new Error('service');
+  const donnees = await reponse.json();
+  const parametres = donnees.properties.parameter;
+  const valeurs = nom => moisClimat.map(mois => parametres[nom][mois]).filter(valeur => Number.isFinite(valeur) && valeur > -900);
+  const soleil = valeurs('ALLSKY_SFC_SW_DWN');
+  const froid = valeurs('T2M_MIN');
+  if (soleil.length < 12 || froid.length < 12) throw new Error('données');
+  const irradiation = Math.round(Math.min(...soleil) * 10) / 10;
+  if (!(irradiation > 0.5)) throw new Error('données');
+  return { irradiation, temperatureMin: Math.round(Math.min(...froid) - 3) };
+}
+
+async function chercherLieu(latitude, longitude) {
+  try {
+    const reponse = await avecDelai(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=fr&lat=${latitude.toFixed(2)}&lon=${longitude.toFixed(2)}`, 10000);
+    if (!reponse.ok) return null;
+    const adresse = (await reponse.json()).address || {};
+    const district = adresse.county || adresse.state_district || adresse.city || adresse.town || adresse.village || adresse.municipality || '';
+    const region = adresse.state || '';
+    const nom = [district, region].filter((element, rang, liste) => element && liste.indexOf(element) === rang).join(', ');
+    return nom || null;
+  } catch (erreur) {
+    return null;
+  }
+}
+
+function carteLocalisation() {
+  const enCours = positionEtat.phase === 'attente';
+  let retour = '';
+  if (enCours) retour = `<p class="message info" role="status">${echapper(positionEtat.message)}</p>`;
+  else if (positionEtat.phase === 'erreur') retour = `<p class="message" role="alert">${echapper(positionEtat.message)}</p>`;
+  else if (etat.ville === 'position' && etat.lieu) {
+    retour = `<p class="message info" role="status"><strong>${echapper(etat.lieu.nom)}</strong><br>Ensoleillement du mois le plus faible : ${formater(etat.irradiation, 1)} kWh/m²/j. Température minimale estimée : ${formater(etat.temperatureMin)} °C. Source : NASA POWER, moyennes sur de nombreuses années.</p>`;
+  }
+  const libelle = enCours ? 'Recherche en cours…' : etat.ville === 'position' ? 'Actualiser ma position' : 'Utiliser ma position';
+  return `<section class="carte localisation">
+    <h2>Position de l’installation</h2>
+    <button type="button" class="bouton secondaire" data-action="localiser"${enCours ? ' disabled' : ''} style="width:100%">${libelle}</button>
+    ${retour}
+    <p class="note">Ton navigateur te demande l’autorisation. Ta position est envoyée au service météo de la NASA et à OpenStreetMap pour trouver l’ensoleillement et le nom du lieu. L’application garde seulement ces résultats, jamais tes coordonnées exactes.</p>
+  </section>`;
+}
+
+async function localiser() {
+  if (positionEtat.phase === 'attente') return;
+  if (!navigator.geolocation) {
+    positionEtat = { phase: 'erreur', message: 'Ce navigateur ne peut pas donner la position. Choisis ta région dans la liste.' };
+    afficher();
+    return;
+  }
+  positionEtat = { phase: 'attente', message: 'Recherche de ta position…' };
+  afficher();
+  let coordonnees;
+  try {
+    coordonnees = await new Promise((resoudre, rejeter) =>
+      navigator.geolocation.getCurrentPosition(position => resoudre(position.coords), rejeter, { enableHighAccuracy: false, timeout: 20000, maximumAge: 300000 })
+    );
+  } catch (erreur) {
+    const messages = {
+      1: 'Position refusée. Autorise la position pour ce site dans les réglages du navigateur, ou choisis ta région dans la liste.',
+      2: 'Position introuvable. Vérifie que la localisation de l’appareil est activée, ou choisis ta région dans la liste.',
+      3: 'La position met trop de temps à arriver. Réessaie en extérieur, ou choisis ta région dans la liste.'
+    };
+    positionEtat = { phase: 'erreur', message: messages[erreur && erreur.code] || 'Position impossible à lire. Choisis ta région dans la liste.' };
+    afficher();
+    return;
+  }
+  positionEtat = { phase: 'attente', message: 'Recherche de l’ensoleillement de ton lieu…' };
+  afficher();
+  try {
+    const [climat, lieu] = await Promise.all([lireClimat(coordonnees.latitude, coordonnees.longitude), chercherLieu(coordonnees.latitude, coordonnees.longitude)]);
+    etat.ville = 'position';
+    etat.irradiation = climat.irradiation;
+    etat.temperatureMin = climat.temperatureMin;
+    etat.latitude = Math.round(coordonnees.latitude * 10) / 10;
+    etat.lieu = { nom: lieu || 'Ma position', source: 'NASA POWER' };
+    sauvegarder();
+    positionEtat = { phase: 'repos', message: '' };
+  } catch (erreur) {
+    positionEtat = { phase: 'erreur', message: 'Impossible de récupérer l’ensoleillement de ton lieu (connexion ou service indisponible). Choisis ta région dans la liste, ou réessaie plus tard.' };
+  }
+  afficher();
+}
+
 function vueSite() {
   const options =
     villes.map(v => `<option value="${v.nom}"${etat.ville === v.nom ? ' selected' : ''}>${v.nom}</option>`).join('') +
-    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>`;
-  return `<section class="carte">
+    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>` +
+    optionPosition();
+  return `${carteLocalisation()}<section class="carte">
     <h2>Lieu d’installation</h2>
     <div class="champ"><label for="ville">Ville</label><select id="ville" data-selection="ville">${options}</select></div>
     <div class="champ"><label for="irradiation">Irradiation du mois le plus défavorable <span class="unite">kWh/m²/jour</span></label>${entree('irradiation', 'irradiation', { pas: 0.1 })}</div>
@@ -1147,8 +1253,9 @@ function sectionReglagesPrix() {
 function vueRegion() {
   const options =
     villes.map(v => `<option value="${v.nom}"${etat.ville === v.nom ? ' selected' : ''}>${v.nom}</option>`).join('') +
-    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>`;
-  return `${bandeau()}<section class="carte">
+    `<option value="autre"${etat.ville === 'autre' ? ' selected' : ''}>Autre lieu</option>` +
+    optionPosition();
+  return `${bandeau()}${carteLocalisation()}<section class="carte">
     <h2>Où sera installé le système ?</h2>
     <div class="champ"><label for="ville">Région</label><select id="ville" data-selection="ville">${options}</select></div>
     <dl class="valeurs" style="margin-top:14px">
@@ -1456,7 +1563,7 @@ function texteResume() {
   const lignes = [
     'DIMTECHPV (DTP) · DIMENSIONNEMENT D’UN SYSTÈME PHOTOVOLTAÏQUE AUTONOME',
     '',
-    `Lieu : ${etat.ville === 'autre' ? 'site personnalisé' : etat.ville} · irradiation du mois défavorable : ${formater(etat.irradiation, 1)} kWh/m²/j`,
+    `Lieu : ${nomLieu()} · irradiation du mois défavorable : ${formater(etat.irradiation, 1)} kWh/m²/j`,
     `Énergie à fournir : ${formater(besoins.energieBesoin)} Wh/j (CA ${formater(besoins.energieCA)} Wh, CC ${formater(besoins.energieCC)} Wh)`,
     `Tension du système : ${r.tension} V`,
     '',
@@ -1560,6 +1667,8 @@ function choisirTechnologie(nom) {
 
 function appliquerVille(nom) {
   etat.ville = nom;
+  etat.lieu = null;
+  positionEtat = { phase: 'repos', message: '' };
   const ville = villes.find(v => v.nom === nom);
   if (ville) {
     etat.irradiation = ville.irradiation;
@@ -1700,7 +1809,7 @@ async function chargerHistorique() {
 }
 
 function nomParDefaut() {
-  const lieu = etat.ville === 'autre' ? 'site personnalisé' : etat.ville;
+  const lieu = nomLieu();
   return `${lieu} · ${new Date().toLocaleDateString('fr-FR')}`;
 }
 
@@ -1727,7 +1836,7 @@ async function enregistrerEtude() {
     nom,
     entrees: JSON.stringify({ ...etat, etape: 0 }),
     resume: {
-      ville: etat.ville,
+      ville: nomLieu(),
       puissanceCrete: r.champ.puissanceInstallee,
       batteries: r.batterie.nombre,
       uniteBatterie: `${etat.uniteTension} V ${etat.uniteCapacite} Ah`,
@@ -1822,6 +1931,7 @@ vue.addEventListener('input', evenement => {
     if (Number.isFinite(valeur)) etat[cible.dataset.cle] = valeur;
     if (['irradiation', 'temperatureMin', 'latitude'].includes(cible.dataset.cle)) {
       etat.ville = 'autre';
+      etat.lieu = null;
       const selection = document.getElementById('ville');
       if (selection) selection.value = 'autre';
     }
@@ -1941,6 +2051,8 @@ document.addEventListener('click', evenement => {
     sauvegarderPrix();
     afficher();
     notifier('Prix d’origine rétablis');
+  } else if (action === 'localiser') {
+    localiser();
   } else if (action === 'copier') {
     copierResume();
   } else if (action === 'mode-auth') {
